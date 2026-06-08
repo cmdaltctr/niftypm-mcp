@@ -1,6 +1,6 @@
 {
   "name": "niftypm-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "MCP server for NiftyPM project management tool",
   "type": "module",
   "bin": {
@@ -14,7 +14,11 @@
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy"
   },
-  "keywords": ["mcp", "niftypm", "project-management"],
+  "keywords": [
+    "mcp",
+    "niftypm",
+    "project-management"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
