@@ -11,7 +11,80 @@ Required OAuth credentials:
 | `NIFTYPM_CLIENT_ID` | OAuth client ID. |
 | `NIFTYPM_CLIENT_SECRET` | OAuth client secret. |
 | `NIFTYPM_ACCESS_TOKEN` | Bearer token used for NiftyPM API requests. |
-| `NIFTYPM_REFRESH_TOKEN` | Refresh token used for auto-refresh and manual refresh. |
+| `NIFTYPM_REFRESH_TOKEN` | OAuth refresh token for automatic `401` recovery. Required for stable connections. |
+
+## How to get the refresh token
+
+The refresh token comes from NiftyPM's **OAuth 2.0 authorisation-code flow**. It is not an API key and it is not the same as the access token.
+
+The sequence is:
+
+1. **Create a NiftyPM app**
+
+   NiftyPM gives you:
+
+   - `Client ID`
+   - `Client Secret`
+   - `Authorize URL`
+   - `Redirect URL`
+
+2. **Open the Authorize URL**
+
+   Example:
+
+   ```text
+   https://nifty.pm/authorize?response_type=code&client_id=CLIENT_ID_HERE&redirect_uri=https://127.0.0.1/callback&scope=project%20task%20file
+   ```
+
+3. **NiftyPM redirects you back with a temporary `code`**
+
+   Example:
+
+   ```text
+   https://127.0.0.1/callback?code=EXAMPLE_AUTH_CODE_FROM_NIFTYPM_CALLBACK
+   ```
+
+4. **Exchange that code for tokens**
+
+   Call NiftyPM's token endpoint:
+
+   ```bash
+   curl -X POST "https://openapi.niftypm.com/oauth/token" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Basic base64(CLIENT_ID:CLIENT_SECRET)" \
+     -d '{
+       "grant_type": "authorization_code",
+       "code": "AUTH_CODE_FROM_REDIRECT",
+       "redirect_uri": "https://127.0.0.1/callback"
+     }'
+   ```
+
+   In a real shell, replace `base64(CLIENT_ID:CLIENT_SECRET)` with the Base64-encoded `CLIENT_ID:CLIENT_SECRET` pair, for example:
+
+   ```bash
+   printf '%s:%s' "$NIFTYPM_CLIENT_ID" "$NIFTYPM_CLIENT_SECRET" | base64
+   ```
+
+5. **Store the returned tokens**
+
+   NiftyPM returns:
+
+   - `access_token`
+   - `refresh_token`
+   - `token_type`
+   - `expires_in`
+   - `scope`
+
+   Store `access_token` as `NIFTYPM_ACCESS_TOKEN` and `refresh_token` as `NIFTYPM_REFRESH_TOKEN`.
+
+Conceptually:
+
+```text
+Client ID + Client Secret identify the app.
+Authorization code proves the user approved the app.
+Refresh token lets the app keep getting new access tokens later.
+Access token is what actually authorises API calls.
+```
 
 Optional transport variables:
 

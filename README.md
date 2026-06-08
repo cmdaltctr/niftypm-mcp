@@ -32,7 +32,21 @@ bun install
 
 ## Configure
 
-Copy the example env file and fill in your OAuth credentials:
+### Configurator UI
+
+The easiest setup path is the static configurator at [`ui/index.html`](ui/index.html):
+
+1. Open `ui/index.html` directly in a browser.
+2. Paste your OAuth credentials.
+3. Toggle any tool domains you want to disable.
+4. Click **Download `.env`**.
+5. Place the downloaded `.env` in the project root and restart the MCP server.
+
+The configurator runs entirely in your browser. It makes no network requests and does not send secrets anywhere.
+
+### Manual `.env` setup
+
+You can also copy the example env file and fill in your OAuth credentials by hand:
 
 ```bash
 cp .env.example .env
@@ -45,7 +59,44 @@ NIFTYPM_ACCESS_TOKEN=your_access_token_here
 NIFTYPM_REFRESH_TOKEN=your_refresh_token_here
 ```
 
-For OpenCode/local work, file-based secrets are recommended to avoid token truncation. See [Configuration and Deployment](docs/guides/configuration.md).
+`NIFTYPM_REFRESH_TOKEN` is the OAuth refresh token for automatic `401` recovery. It is required for stable connections — without it, every access-token expiry forces manual re-authorisation.
+
+### How to obtain the refresh token
+
+Use NiftyPM's OAuth authorisation-code flow:
+
+1. Create or use a NiftyPM OAuth app and note its client ID, client secret, and redirect URI.
+2. Open the app's authorisation URL in a browser and approve access.
+3. Copy the `code` value from the callback URL sent to your redirect URI.
+4. Exchange that code for tokens with `POST https://openapi.niftypm.com/oauth/token`.
+
+Example token exchange:
+
+```bash
+curl -X POST https://openapi.niftypm.com/oauth/token \
+  -H "Authorization: Basic $(printf '%s:%s' "$NIFTYPM_CLIENT_ID" "$NIFTYPM_CLIENT_SECRET" | base64)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "code": "AUTHORIZATION_CODE_FROM_CALLBACK",
+    "redirect_uri": "YOUR_REDIRECT_URI"
+  }'
+```
+
+The response includes both `access_token` and `refresh_token`. Store them as `NIFTYPM_ACCESS_TOKEN` and `NIFTYPM_REFRESH_TOKEN`.
+
+### Manual `.secrets/` option
+
+For OpenCode or local setups, you may store credentials in `.secrets/` files instead of `.env`:
+
+```text
+.secrets/client_id
+.secrets/client_secret
+.secrets/access_token
+.secrets/refresh_token
+```
+
+The UI configurator remains the easiest path because it generates a complete `.env` by copy-paste and download. See [Configuration and Deployment](docs/guides/configuration.md) for more deployment details.
 
 ## Run locally
 
