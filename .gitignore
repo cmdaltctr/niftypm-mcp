@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.dev.vars
+.secrets/
+.wrangler/
+openspec/
+.opencode/
+docs/api/
+docs/security/
+__pycache__/
+.venv/
+*.log
+.DS_Store

@@ -1,0 +1,34 @@
+{
+  "name": "niftypm-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for NiftyPM project management tool",
+  "type": "module",
+  "bin": {
+    "niftypm-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch src/index.ts",
+    "test": "vitest run",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy"
+  },
+  "keywords": ["mcp", "niftypm", "project-management"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "agents": "^0.14.5",
+    "fastmcp": "^4.0.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^25.9.2",
+    "semantic-release": "^25.0.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
+    "wrangler": "^4.98.0"
+  }
+}

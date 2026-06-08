@@ -1,0 +1,9 @@
+# Cloudflare Workers secrets (local development)
+# Copy this file to .dev.vars and fill in your credentials
+
+NIFTYPM_ACCESS_TOKEN=your_access_token_here
+NIFTYPM_REFRESH_TOKEN=your_refresh_token_here
+NIFTYPM_CLIENT_ID=your_client_id_here
+NIFTYPM_CLIENT_SECRET=your_client_secret_here
+
+MCP_AUTH_SECRET=your_shared_secret_here
