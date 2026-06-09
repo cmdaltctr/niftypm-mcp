@@ -84,6 +84,29 @@ describe("registerTasksTools", () => {
         name: "Updated",
       });
     });
+
+    it("should forward dependency, milestone_id, assignees and story_points", async () => {
+      const parsed = tool.parameters.parse({
+        task_id: "task-1",
+        dependency: "task-0",
+        milestone_id: "ms-1",
+        assignees: ["m-1", "m-2"],
+        story_points: 5,
+      });
+      await tool.execute(parsed);
+
+      expect(client.put).toHaveBeenLastCalledWith("/api/v1.0/tasks/task-1", {
+        dependency: "task-0",
+        milestone_id: "ms-1",
+        assignees: ["m-1", "m-2"],
+        story_points: 5,
+      });
+    });
+
+    it("should accept a dependency ID containing '!'", () => {
+      const result = tool.parameters.safeParse({ task_id: "t1", dependency: "_Xn!113R0u" });
+      expect(result.success).toBe(true);
+    });
   });
 
   describe("niftypm_delete_task", () => {

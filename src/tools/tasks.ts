@@ -82,6 +82,13 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     description: z.string().optional().describe("Task description"),
     due_date: z.string().optional().describe("Due date (ISO 8601 format)"),
     start_date: z.string().optional().describe("Start date (ISO 8601 format)"),
+    // NiftyPM UpdateTaskBody fields that drive roadmap/dependency semantics.
+    // `dependency` is a single predecessor task ID (true blocking relationship,
+    // distinct from the informational link_task tool).
+    dependency: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Predecessor task ID this task depends on (blocking dependency)"),
+    milestone_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Milestone ID"),
+    assignees: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).optional().describe("Array of member IDs to assign"),
+    story_points: z.number().optional().describe("Story points"),
   });
 
   if (!disabledTools.includes("niftypm_update_task")) {
