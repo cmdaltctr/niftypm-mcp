@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.0.0...v1.1.0) (2026-06-09)
+
+
+### Bug Fixes
+
+* **test:** add missing enabledTools keys to mock configs ([66ddfc9](https://github.com/cmdaltctr/niftypm-mcp/commit/66ddfc9d4d4ddc52a345ae66c8824f06e3614195))
+
+
+### Features
+
+* **tools:** add file upload and 11 new API tools ([a0f0d40](https://github.com/cmdaltctr/niftypm-mcp/commit/a0f0d400246002bda2bdb71e318466e6916921be))
+* **ui:** add NiftyPM configurator HTML page ([a414111](https://github.com/cmdaltctr/niftypm-mcp/commit/a414111a7d08b084392af5cf06b3bd8e51e19832))
+
 # 1.0.0 (2026-06-08)
 
 
