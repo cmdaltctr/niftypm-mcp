@@ -13,8 +13,8 @@ describe("registerSubTeamsTools", () => {
 
   registerSubTeamsTools(server as any, client as any);
 
-  it("should register 5 subteam tools", () => {
-    expect(server.addTool).toHaveBeenCalledTimes(5);
+  it("should register 8 subteam tools", () => {
+    expect(server.addTool).toHaveBeenCalledTimes(8);
   });
 
   it("should register tools with correct names", () => {
@@ -24,6 +24,9 @@ describe("registerSubTeamsTools", () => {
     expect(names).toContain("niftypm_create_subteam");
     expect(names).toContain("niftypm_update_subteam");
     expect(names).toContain("niftypm_delete_subteam");
+    expect(names).toContain("niftypm_add_subteam_members");
+    expect(names).toContain("niftypm_remove_subteam_members");
+    expect(names).toContain("niftypm_leave_subteam");
   });
 
   describe("niftypm_list_subteams", () => {
@@ -79,6 +82,42 @@ describe("registerSubTeamsTools", () => {
       await tool.execute({ subteam_id: "st-1" });
 
       expect(client.delete).toHaveBeenCalledWith("/api/v1.0/subteams/st-1");
+    });
+  });
+
+  describe("niftypm_add_subteam_members", () => {
+    const tool = server.getTool("niftypm_add_subteam_members")!;
+
+    it("should call PUT /api/v1.0/subteams/:id/members", async () => {
+      await tool.execute({ subteam_id: "st-1", members_ids: ["member-1"] });
+
+      expect(client.put).toHaveBeenCalledWith(
+        "/api/v1.0/subteams/st-1/members",
+        { members_ids: ["member-1"] }
+      );
+    });
+  });
+
+  describe("niftypm_remove_subteam_members", () => {
+    const tool = server.getTool("niftypm_remove_subteam_members")!;
+
+    it("should call DELETE /api/v1.0/subteams/:id/members with body", async () => {
+      await tool.execute({ subteam_id: "st-1", members_ids: ["member-1"] });
+
+      expect(client.delete).toHaveBeenCalledWith(
+        "/api/v1.0/subteams/st-1/members",
+        { body: { members_ids: ["member-1"] } }
+      );
+    });
+  });
+
+  describe("niftypm_leave_subteam", () => {
+    const tool = server.getTool("niftypm_leave_subteam")!;
+
+    it("should call POST /api/v1.0/subteams/:id/leave", async () => {
+      await tool.execute({ subteam_id: "st-1" });
+
+      expect(client.post).toHaveBeenCalledWith("/api/v1.0/subteams/st-1/leave");
     });
   });
 });

@@ -13,8 +13,8 @@ describe("registerTasksTools", () => {
 
   registerTasksTools(server as any, client as any);
 
-  it("should register 22 task tools", () => {
-    expect(server.addTool).toHaveBeenCalledTimes(22);
+  it("should register 23 task tools", () => {
+    expect(server.addTool).toHaveBeenCalledTimes(23);
   });
 
   it("should register tools with correct names", () => {
@@ -24,6 +24,7 @@ describe("registerTasksTools", () => {
     expect(names).toContain("niftypm_create_task");
     expect(names).toContain("niftypm_update_task");
     expect(names).toContain("niftypm_delete_task");
+    expect(names).toContain("niftypm_delete_tasks");
     expect(names).toContain("niftypm_complete_task");
     expect(names).toContain("niftypm_archive_task");
   });
@@ -92,6 +93,22 @@ describe("registerTasksTools", () => {
       await tool.execute({ task_id: "task-1" });
 
       expect(client.delete).toHaveBeenCalledWith("/api/v1.0/tasks/task-1");
+    });
+  });
+
+  describe("niftypm_delete_tasks", () => {
+    const tool = server.getTool("niftypm_delete_tasks")!;
+
+    it("should call DELETE /api/v1.0/tasks with body", async () => {
+      await tool.execute({ task_ids: ["task-1", "task-2"], project_id: "proj-1" });
+
+      expect(client.delete).toHaveBeenCalledWith("/api/v1.0/tasks", {
+        body: { task_ids: ["task-1", "task-2"], project_id: "proj-1" },
+      });
+    });
+
+    it("should reject empty task_ids", () => {
+      expect(() => tool.parameters.parse({ task_ids: [] })).toThrow();
     });
   });
 

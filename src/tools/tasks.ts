@@ -103,6 +103,22 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient) {
     },
   });
 
+  // Delete multiple tasks
+  const DeleteTasksSchema = z.object({
+    task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of task IDs to delete"),
+    project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Project ID"),
+  });
+
+  server.addTool({
+    name: "niftypm_delete_tasks",
+    description: "Delete multiple tasks",
+    parameters: DeleteTasksSchema,
+    execute: async (params: z.infer<typeof DeleteTasksSchema>) => {
+      const result = await client.delete("/api/v1.0/tasks", { body: params });
+      return JSON.stringify(result, null, 2);
+    },
+  });
+
   // Complete task
   const CompleteTaskSchema = z.object({
     task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),

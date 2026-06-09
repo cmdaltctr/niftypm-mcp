@@ -92,4 +92,46 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+
+  // Move milestone to project
+  server.addTool({
+    name: "niftypm_move_milestone",
+    description: "Move a milestone to another project",
+    parameters: z.object({
+      milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Milestone ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Target project ID"),
+    }),
+    execute: async ({ milestone_id, project_id }: any) => {
+      const result = await client.put(`/api/v1.0/milestones/${milestone_id}/move_to_project`, { project_id });
+      return JSON.stringify(result, null, 2);
+    },
+  });
+
+  // Tie tasks to milestone
+  server.addTool({
+    name: "niftypm_tie_milestone_tasks",
+    description: "Tie tasks to a milestone",
+    parameters: z.object({
+      milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Milestone ID"),
+      task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of task IDs to tie"),
+    }),
+    execute: async ({ milestone_id, task_ids }: any) => {
+      const result = await client.put(`/api/v1.0/milestones/${milestone_id}/tasks`, { tasks: task_ids });
+      return JSON.stringify(result, null, 2);
+    },
+  });
+
+  // Untie tasks from milestone
+  server.addTool({
+    name: "niftypm_untie_milestone_tasks",
+    description: "Untie tasks from a milestone",
+    parameters: z.object({
+      milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Milestone ID"),
+      task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of task IDs to untie"),
+    }),
+    execute: async ({ milestone_id, task_ids }: any) => {
+      const result = await client.delete(`/api/v1.0/milestones/${milestone_id}/tasks`, { body: { tasks: task_ids } });
+      return JSON.stringify(result, null, 2);
+    },
+  });
 }

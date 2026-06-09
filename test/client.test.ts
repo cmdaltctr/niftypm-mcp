@@ -297,6 +297,64 @@ describe("NiftyPMClient", () => {
     });
   });
 
+  describe("formUpload", () => {
+    it("should make a multipart POST request without setting Content-Type", async () => {
+      const mockResponse = { files: [{ id: "file-1" }] };
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify(mockResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+
+      const formData = new FormData();
+      formData.append("files", new Blob(["hello"], { type: "text/plain" }), "hello.txt");
+
+      const result = await client.formUpload("/api/v1.0/files", formData, {
+        project_id: "proj-1",
+        task_id: undefined,
+      });
+
+      expect(result).toEqual(mockResponse);
+      const callArgs = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(callArgs[0]).toBe("https://openapi.niftypm.com/api/v1.0/files?project_id=proj-1");
+      expect(callArgs[1].method).toBe("POST");
+      expect(callArgs[1].body).toBe(formData);
+      const headers = callArgs[1].headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer test-access-token");
+      expect(headers.has("Content-Type")).toBe(false);
+    });
+
+    it("should refresh the access token on multipart 401 and retry once", async () => {
+      const mockResponse = { files: [{ id: "file-1" }] };
+      const fetchMock = vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
+        )
+        .mockResolvedValueOnce(
+          jsonResponse({
+            access_token: "new-upload-token",
+            refresh_token: "new-upload-refresh-token",
+          })
+        )
+        .mockResolvedValueOnce(jsonResponse(mockResponse));
+
+      const formData = new FormData();
+      formData.append("files", new Blob(["hello"], { type: "text/plain" }), "hello.txt");
+
+      const result = await client.formUpload("/api/v1.0/files", formData);
+
+      expect(result).toEqual(mockResponse);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock.mock.calls[1][0]).toBe("https://openapi.niftypm.com/oauth/token");
+      const retryHeaders = fetchMock.mock.calls[2][1]?.headers as Headers;
+      expect(retryHeaders.get("Authorization")).toBe("Bearer new-upload-token");
+      expect(retryHeaders.has("Content-Type")).toBe(false);
+      expect(config.accessToken).toBe("new-upload-token");
+      expect(config.refreshToken).toBe("new-upload-refresh-token");
+    });
+  });
+
   describe("put", () => {
     it("should make a PUT request with JSON body", async () => {
       const mockResponse = { id: "1", name: "Updated Task" };

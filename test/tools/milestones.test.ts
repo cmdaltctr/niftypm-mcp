@@ -13,8 +13,8 @@ describe("registerMilestonesTools", () => {
 
   registerMilestonesTools(server as any, client as any);
 
-  it("should register 6 milestone tools", () => {
-    expect(server.addTool).toHaveBeenCalledTimes(6);
+  it("should register 9 milestone tools", () => {
+    expect(server.addTool).toHaveBeenCalledTimes(9);
   });
 
   it("should register tools with correct names", () => {
@@ -25,6 +25,9 @@ describe("registerMilestonesTools", () => {
     expect(names).toContain("niftypm_update_milestone");
     expect(names).toContain("niftypm_delete_milestone");
     expect(names).toContain("niftypm_archive_milestone");
+    expect(names).toContain("niftypm_move_milestone");
+    expect(names).toContain("niftypm_tie_milestone_tasks");
+    expect(names).toContain("niftypm_untie_milestone_tasks");
   });
 
   describe("niftypm_list_milestones", () => {
@@ -94,6 +97,45 @@ describe("registerMilestonesTools", () => {
 
       expect(client.post).toHaveBeenCalledWith(
         "/api/v1.0/milestones/ms-1/archive"
+      );
+    });
+  });
+
+  describe("niftypm_move_milestone", () => {
+    const tool = server.getTool("niftypm_move_milestone")!;
+
+    it("should call PUT /api/v1.0/milestones/:id/move_to_project", async () => {
+      await tool.execute({ milestone_id: "ms-1", project_id: "proj-2" });
+
+      expect(client.put).toHaveBeenCalledWith(
+        "/api/v1.0/milestones/ms-1/move_to_project",
+        { project_id: "proj-2" }
+      );
+    });
+  });
+
+  describe("niftypm_tie_milestone_tasks", () => {
+    const tool = server.getTool("niftypm_tie_milestone_tasks")!;
+
+    it("should call PUT /api/v1.0/milestones/:id/tasks with tasks", async () => {
+      await tool.execute({ milestone_id: "ms-1", task_ids: ["task-1"] });
+
+      expect(client.put).toHaveBeenCalledWith(
+        "/api/v1.0/milestones/ms-1/tasks",
+        { tasks: ["task-1"] }
+      );
+    });
+  });
+
+  describe("niftypm_untie_milestone_tasks", () => {
+    const tool = server.getTool("niftypm_untie_milestone_tasks")!;
+
+    it("should call DELETE /api/v1.0/milestones/:id/tasks with tasks", async () => {
+      await tool.execute({ milestone_id: "ms-1", task_ids: ["task-1"] });
+
+      expect(client.delete).toHaveBeenCalledWith(
+        "/api/v1.0/milestones/ms-1/tasks",
+        { body: { tasks: ["task-1"] } }
       );
     });
   });

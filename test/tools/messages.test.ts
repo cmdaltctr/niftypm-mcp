@@ -13,8 +13,8 @@ describe("registerMessagesTools", () => {
 
   registerMessagesTools(server as any, client as any);
 
-  it("should register 6 message tools", () => {
-    expect(server.addTool).toHaveBeenCalledTimes(6);
+  it("should register 7 message tools", () => {
+    expect(server.addTool).toHaveBeenCalledTimes(7);
   });
 
   it("should register tools with correct names", () => {
@@ -25,6 +25,7 @@ describe("registerMessagesTools", () => {
     expect(names).toContain("niftypm_update_message");
     expect(names).toContain("niftypm_delete_message");
     expect(names).toContain("niftypm_mark_message_seen");
+    expect(names).toContain("niftypm_mark_message_heard");
   });
 
   describe("niftypm_list_messages", () => {
@@ -92,6 +93,18 @@ describe("registerMessagesTools", () => {
 
       expect(client.post).toHaveBeenCalledWith(
         "/api/v1.0/messages/msg-1/see"
+      );
+    });
+  });
+
+  describe("niftypm_mark_message_heard", () => {
+    const tool = server.getTool("niftypm_mark_message_heard")!;
+
+    it("should call POST /api/v1.0/messages/:id/hear", async () => {
+      await tool.execute({ message_id: "msg-1" });
+
+      expect(client.post).toHaveBeenCalledWith(
+        "/api/v1.0/messages/msg-1/hear"
       );
     });
   });

@@ -38,10 +38,14 @@ import { registerAuthTools } from "../src/tools/auth.js";
  */
 const EXPECTED_TOOLS: Record<string, string[]> = {
   files: [
+    "niftypm_upload_files",
     "niftypm_list_files",
     "niftypm_get_file",
     "niftypm_delete_file",
+    "niftypm_update_file",
     "niftypm_copy_file",
+    "niftypm_add_file_labels",
+    "niftypm_remove_file_labels",
   ],
   labels: [
     "niftypm_list_labels",
@@ -72,6 +76,9 @@ const EXPECTED_TOOLS: Record<string, string[]> = {
     "niftypm_update_milestone",
     "niftypm_delete_milestone",
     "niftypm_archive_milestone",
+    "niftypm_move_milestone",
+    "niftypm_tie_milestone_tasks",
+    "niftypm_untie_milestone_tasks",
   ],
   messages: [
     "niftypm_list_messages",
@@ -80,6 +87,7 @@ const EXPECTED_TOOLS: Record<string, string[]> = {
     "niftypm_update_message",
     "niftypm_delete_message",
     "niftypm_mark_message_seen",
+    "niftypm_mark_message_heard",
   ],
   taskGroups: [
     "niftypm_list_taskgroups",
@@ -97,6 +105,7 @@ const EXPECTED_TOOLS: Record<string, string[]> = {
     "niftypm_create_task",
     "niftypm_update_task",
     "niftypm_delete_task",
+    "niftypm_delete_tasks",
     "niftypm_complete_task",
     "niftypm_archive_task",
     "niftypm_get_personal_tasks",
@@ -121,6 +130,9 @@ const EXPECTED_TOOLS: Record<string, string[]> = {
     "niftypm_get_subteam",
     "niftypm_update_subteam",
     "niftypm_delete_subteam",
+    "niftypm_add_subteam_members",
+    "niftypm_remove_subteam_members",
+    "niftypm_leave_subteam",
   ],
   projects: [
     "niftypm_list_projects",

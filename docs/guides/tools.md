@@ -63,6 +63,27 @@ Use `task_id` to create a subtask. The child task still belongs to a task group,
 
 The main client also auto-refreshes access tokens in memory when an API call returns `401`.
 
+### Upload a file with Base64 content
+
+`niftypm_upload_files` accepts file content as Base64 so uploads work in both local Node and Cloudflare Worker runtimes.
+
+```json
+{
+  "tool": "niftypm_upload_files",
+  "arguments": {
+    "project_id": "project_id_here",
+    "task_id": "task_id_here",
+    "files": [
+      {
+        "filename": "notes.txt",
+        "mime_type": "text/plain",
+        "content_base64": "SGVsbG8gZnJvbSBOaWZ0eVBN"
+      }
+    ]
+  }
+}
+```
+
 ## Domains
 
 ### Apps
@@ -114,10 +135,14 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 
 | Tool | Purpose |
 | --- | --- |
+| `niftypm_upload_files` | Upload one or more files with Base64-encoded content. |
 | `niftypm_list_files` | List files in a project or task. |
 | `niftypm_get_file` | Get a file by ID. |
 | `niftypm_delete_file` | Delete a file. |
+| `niftypm_update_file` | Update file metadata such as folder or annotation task. |
 | `niftypm_copy_file` | Copy a file to another project. |
+| `niftypm_add_file_labels` | Add labels to a file. |
+| `niftypm_remove_file_labels` | Remove labels from a file. |
 
 ### Folders
 
@@ -163,6 +188,7 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 | `niftypm_update_message` | Update a message. |
 | `niftypm_delete_message` | Delete a message. |
 | `niftypm_mark_message_seen` | Mark a message as seen. |
+| `niftypm_mark_message_heard` | Mark a message as heard. |
 
 ### Milestones
 
@@ -174,6 +200,9 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 | `niftypm_update_milestone` | Update a milestone. |
 | `niftypm_delete_milestone` | Delete a milestone. |
 | `niftypm_archive_milestone` | Archive a milestone. |
+| `niftypm_move_milestone` | Move a milestone to another project. |
+| `niftypm_tie_milestone_tasks` | Add tasks to a milestone. |
+| `niftypm_untie_milestone_tasks` | Remove tasks from a milestone. |
 
 ### Projects
 
@@ -200,6 +229,9 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 | `niftypm_create_subteam` | Create a subteam. |
 | `niftypm_update_subteam` | Update a subteam. |
 | `niftypm_delete_subteam` | Delete a subteam. |
+| `niftypm_add_subteam_members` | Add members to a subteam or portfolio. |
+| `niftypm_remove_subteam_members` | Remove members from a subteam or portfolio. |
+| `niftypm_leave_subteam` | Leave a subteam or portfolio. |
 
 ### Task groups
 
@@ -223,6 +255,7 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 | `niftypm_create_task` | Create a task or subtask. |
 | `niftypm_update_task` | Update a task. |
 | `niftypm_delete_task` | Delete a task. |
+| `niftypm_delete_tasks` | Delete multiple tasks in one request. |
 | `niftypm_complete_task` | Mark a task complete. |
 | `niftypm_archive_task` | Archive a task. |
 | `niftypm_get_personal_tasks` | List personal tasks. |

@@ -37,5 +37,6 @@ export function createMockClient() {
     post: vi.fn().mockResolvedValue({ data: "mock-post-response" }),
     put: vi.fn().mockResolvedValue({ data: "mock-put-response" }),
     delete: vi.fn().mockResolvedValue({ data: "mock-delete-response" }),
+    formUpload: vi.fn().mockResolvedValue({ data: "mock-upload-response" }),
   };
 }

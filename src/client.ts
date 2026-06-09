@@ -138,6 +138,55 @@ export class NiftyPMClient {
   }
 
   /**
+   * POST multipart form data to the NiftyPM API.
+   *
+   * Do not set Content-Type here: fetch/FormData must generate the
+   * multipart boundary for both Node 18+ and Cloudflare Workers runtimes.
+   */
+  async formUpload<T>(
+    endpoint: string,
+    formData: FormData,
+    params?: Record<string, any>
+  ): Promise<T> {
+    const url = new URL(`${this.config.baseUrl}${endpoint}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const headers = new Headers({
+      Authorization: `Bearer ${this.config.accessToken}`,
+    });
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      if (response.status === 401 && attempt === 0) {
+        await this.refreshAccessToken();
+        headers.set("Authorization", `Bearer ${this.config.accessToken}`);
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `NiftyPM API error (${response.status}): ${response.statusText}`
+        );
+      }
+
+      return response.json() as Promise<T>;
+    }
+
+    throw new Error("NiftyPM API error: unexpected upload request state");
+  }
+
+  /**
    * GET request
    */
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {

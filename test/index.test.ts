@@ -71,7 +71,7 @@ describe("Server creation integration", () => {
     });
   });
 
-  it("should register all 44 tools when all tool groups are enabled", async () => {
+  it("should register all legacy-domain tools when all legacy tool groups are enabled", async () => {
     const { registerTasksTools } = await import("../src/tools/tasks.js");
     const { registerFilesTools } = await import("../src/tools/files.js");
     const { registerLabelsTools } = await import("../src/tools/labels.js");
@@ -99,6 +99,18 @@ describe("Server creation integration", () => {
         taskGroups: true,
         tasks: true,
         subTeams: true,
+        projects: true,
+        folders: true,
+        members: true,
+        webhooks: true,
+        time: true,
+        fields: true,
+        apps: true,
+        chat: true,
+        invite: true,
+        templates: true,
+        users: true,
+        auth: true,
       },
     };
 
@@ -113,9 +125,9 @@ describe("Server creation integration", () => {
     registerTasksTools(mockServer as any, client);
     registerSubTeamsTools(mockServer as any, client);
 
-    // 4 files + 5 labels + 13 docs + 6 milestones + 6 messages + 8 taskgroups + 22 tasks + 5 subteams = 69
+    // 8 files + 5 labels + 13 docs + 9 milestones + 7 messages + 8 taskgroups + 23 tasks + 8 subteams = 81
     // We only test the original ones here in this specific test
-    expect(mockServer.addTool).toHaveBeenCalledTimes(69);
+    expect(mockServer.addTool).toHaveBeenCalledTimes(81);
   });
 
   it("should respect enabledTools configuration to skip tool groups", async () => {
@@ -161,7 +173,7 @@ describe("Server creation integration", () => {
     if (config.enabledTools.tasks) registerTasksTools(mockServer as any, client);
     if (config.enabledTools.files) registerFilesTools(mockServer as any, client);
 
-    // Only tasks tools should be registered (22 tasks)
-    expect(mockServer.addTool).toHaveBeenCalledTimes(22);
+    // Only tasks tools should be registered (23 tasks)
+    expect(mockServer.addTool).toHaveBeenCalledTimes(23);
   });
 });

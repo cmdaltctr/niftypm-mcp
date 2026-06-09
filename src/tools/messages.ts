@@ -104,4 +104,19 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+
+  // Mark message as heard
+  const MarkMessageHeardSchema = z.object({
+    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+  });
+
+  server.addTool({
+    name: "niftypm_mark_message_heard",
+    description: "Mark a message as heard",
+    parameters: MarkMessageHeardSchema,
+    execute: async ({ message_id }: z.infer<typeof MarkMessageHeardSchema>) => {
+      const result = await client.post(`/api/v1.0/messages/${message_id}/hear`);
+      return JSON.stringify(result, null, 2);
+    },
+  });
 }
