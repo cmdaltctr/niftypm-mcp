@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.0...v1.2.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **tools:** align tool schemas with NiftyPM API contracts ([e274204](https://github.com/cmdaltctr/niftypm-mcp/commit/e274204d8496aecc6088beea386e1336c15f4abf))
+
 # [1.2.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.1.0...v1.2.0) (2026-06-09)
 
 
