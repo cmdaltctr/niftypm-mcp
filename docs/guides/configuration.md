@@ -94,6 +94,72 @@ Optional transport variables:
 | `PORT` | `8080` | Local HTTP port when `TRANSPORT=http`. |
 | `MCP_AUTH_SECRET` | unset | Required by the Cloudflare Workers entry point. |
 
+## UI Configurator
+
+The project ships a static HTML configurator at `ui/index.html`. It is the
+easiest way to generate a `.env` file without editing anything by hand.
+
+**How to use:**
+1. Open `ui/index.html` in a browser (works via `file://` — no server needed).
+2. Paste your OAuth credentials in the form.
+3. Switch between the **Simple** and **Advanced** tabs to configure tools.
+
+**Simple tab** — 20 domain-level ON/OFF switches, grouped into Core
+(projects, tasks, docs) and Extended (workspace and integration). Turning a
+domain OFF disables every tool in that domain.
+
+**Advanced tab** — a full per-tool toggle table with ~116 tools across all 20
+domains, each with a name, human-readable description, and individual toggle.
+When a domain is OFF in Simple, the Advanced tab dims that domain's section.
+Per-tool overrides you set in Advanced are preserved even when you briefly
+disable and re-enable the domain.
+
+**Downloads:** the button saves a `.env` file. Your browser may download it
+as `env.txt` — rename it to `.env` and place it in the project root.
+
+**Security:** the page makes no network requests. Credentials never leave
+your machine.
+
+## Per-tool disabling (`DISABLED_TOOLS`)
+
+In addition to domain-level `ENABLE_*` toggles, you can disable individual
+tools without disabling their entire domain. This is useful when you want
+most tools in a category but need to remove a few high-risk or noisy ones.
+
+On the UI's **Advanced** tab, toggle individual tool rows. When you download,
+the generated `.env` includes a `DISABLED_TOOLS` line:
+
+```dotenv
+# Per-tool overrides
+DISABLED_TOOLS=niftypm_delete_document,niftypm_update_document
+```
+
+You can also set this variable manually:
+
+```dotenv
+DISABLED_TOOLS=niftypm_delete_document,niftypm_archive_task
+```
+
+Tools listed here are skipped during registration even when their domain's
+`ENABLE_*` flag is `true`. The domain-level gate takes precedence — if a
+domain is disabled, none of its tools register regardless of
+`DISABLED_TOOLS`.
+
+## `.env` auto-loading
+
+The server automatically loads a `.env` file from the project root at
+startup. Credential lines that are empty fall through to `.secrets/` files,
+so you can keep credentials in `.secrets/` and toggles in `.env`:
+
+```
+Client config (env)  →  .env file  →  .secrets/ files  →  ""
+  (highest priority)                                  (fallback)
+```
+
+Real environment variables from your MCP client config always take
+precedence over values in `.env`. No special flag or `--env-file` option is
+needed — dropping a `.env` in the project root just works.
+
 ## Tool toggles
 Each domain can be disabled by setting its flag to `false`:
 

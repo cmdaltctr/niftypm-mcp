@@ -11,7 +11,8 @@ It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones,
 - Cloudflare Workers entry point for hosted/remote use.
 - OAuth bearer-token API client with in-memory token refresh on `401`.
 - Zod-validated tool parameters.
-- Per-domain tool toggles through `ENABLE_*` environment variables.
+- Per-domain tool toggles through `ENABLE_*` environment variables, plus
+  per-tool granularity via `DISABLED_TOOLS`.
 
 ## Requirements
 
@@ -38,11 +39,16 @@ The easiest setup path is the static configurator at [`ui/index.html`](ui/index.
 
 1. Open `ui/index.html` directly in a browser.
 2. Paste your OAuth credentials.
-3. Toggle any tool domains you want to disable.
+3. Switch between **Simple** (domain-level toggles) and **Advanced** (per-tool toggle table) tabs.
 4. Click **Download `.env`**.
-5. Place the downloaded `.env` in the project root and restart the MCP server.
+5. Rename it to `.env`, place it in the project root, and restart your MCP client.
 
 The configurator runs entirely in your browser. It makes no network requests and does not send secrets anywhere.
+
+The **Simple** tab shows 20 domain-level switches (core + extended). The
+**Advanced** tab gives you per-tool control — disable individual tools
+within an enabled domain, down to a single unwanted operation. The
+generated `.env` is auto-loaded on server start.
 
 ### Manual `.env` setup
 
