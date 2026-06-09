@@ -8,6 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync, existsSync } from "node:fs";
 import { loadConfig, validateConfig } from "../src/config.js";
 import type { NiftyPMConfig } from "../src/config.js";
 
@@ -48,12 +49,15 @@ function createConfig(overrides: Partial<NiftyPMConfig> = {}): NiftyPMConfig {
 }
 
 // Force readFileSync to throw so the .secrets/ fallback always
-// returns empty strings.  vi.mock hoists, so this intercepts
-// the import before config.ts resolves it.
+// returns empty strings.  Mock existsSync to return false so the
+// new loadEnvFile() helper in config.ts skips .env auto-loading
+// during tests (otherwise the real .env would leak in). vi.mock
+// hoists, so this intercepts the import before config.ts resolves it.
 vi.mock("node:fs", () => ({
   readFileSync: vi.fn().mockImplementation(() => {
     throw new Error("ENOENT: mock — .secrets/ files do not exist in tests");
   }),
+  existsSync: vi.fn().mockReturnValue(false),
 }));
 
 describe("loadConfig", () => {
@@ -211,5 +215,74 @@ describe("validateConfig", () => {
     process.env.DISABLED_TOOLS = "   ";
     const config = loadConfig();
     expect(config.disabledTools).toEqual([]);
+  });
+});
+
+describe("loadEnvFile (auto-loaded .env)", () => {
+  const originalEnv = process.env;
+  const originalReadFile = vi.mocked(readFileSync);
+  const originalExists = vi.mocked(existsSync);
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.mocked(readFileSync).mockReset();
+    vi.mocked(existsSync).mockReset();
+  });
+
+  it("should be a no-op when .env does not exist", () => {
+    vi.mocked(existsSync).mockReturnValue(false);
+    delete process.env.ENABLE_TASKS;
+    loadConfig();
+    // existsSync was called, but no .env was read
+    expect(process.env.ENABLE_TASKS).toBeUndefined();
+  });
+
+  it("should set env vars from .env when present and not already set", () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      "ENABLE_TASKS=false\nENABLE_MESSAGES=true\n" as any,
+    );
+    delete process.env.ENABLE_TASKS;
+    delete process.env.ENABLE_MESSAGES;
+    const config = loadConfig();
+    expect(config.enabledTools.tasks).toBe(false);
+    expect(config.enabledTools.messages).toBe(true);
+  });
+
+  it("should not overwrite env vars already set in process.env", () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue("ENABLE_TASKS=false\n" as any);
+    process.env.ENABLE_TASKS = "true";
+    const config = loadConfig();
+    // Real env wins
+    expect(config.enabledTools.tasks).toBe(true);
+  });
+
+  it("should skip blank lines and comments", () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      "# this is a comment\n\nENABLE_TASKS=false\n# another comment\n" as any,
+    );
+    delete process.env.ENABLE_TASKS;
+    const config = loadConfig();
+    expect(config.enabledTools.tasks).toBe(false);
+  });
+
+  it("should strip surrounding quotes from values", () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      'NIFTYPM_CLIENT_ID="abc123"\n',
+    );
+    delete process.env.NIFTYPM_CLIENT_ID;
+    // .secrets/ mock will throw, so empty client_id comes from .env fallback
+    vi.mocked(readFileSync).mockImplementationOnce(() =>
+      'NIFTYPM_CLIENT_ID="abc123"\n' as any,
+    );
+    const config = loadConfig();
+    expect(config.clientId).toBe("abc123");
   });
 });

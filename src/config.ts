@@ -5,9 +5,13 @@
  * Credentials are read from environment variables first.
  * When running locally (not on Cloudflare Workers), any empty
  * credential falls back to reading from the .secrets/ directory.
+ *
+ * A .env file in the project root is also auto-loaded into
+ * process.env (when present) so users can drop in a downloaded
+ * .env without needing to source it in the shell.
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 export interface NiftyPMConfig {
@@ -71,6 +75,42 @@ function loadCredential(envKey: string, secretFileName: string): string {
 }
 
 /**
+ * Load a .env file from the project root into process.env.
+ * Parses KEY=VALUE lines (ignoring comments and blanks) and
+ * only sets vars that are not already set in the environment —
+ * real env vars (e.g. from MCP client config) take precedence.
+ * No-op if the file is missing (e.g. on Cloudflare Workers).
+ */
+function loadEnvFile(): void {
+  const envPath = resolve(
+    new URL(".", import.meta.url).pathname,
+    "..",
+    ".env",
+  );
+  if (!existsSync(envPath)) return;
+
+  const content = readFileSync(envPath, "utf-8");
+  for (const rawLine of content.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    // Strip surrounding quotes if present
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+/**
  * Parse the DISABLED_TOOLS env var into a clean string array.
  * Splits on comma, trims whitespace from each entry, and filters
  * out empty strings so that trailing commas don't produce phantom
@@ -88,6 +128,10 @@ function parseDisabledTools(): string[] {
  * (local development convenience).
  */
 export function loadConfig(): NiftyPMConfig {
+  // Auto-load a .env file from the project root, if present.
+  // Existing process.env values are preserved (real env wins).
+  loadEnvFile();
+
   const clientId = loadCredential("NIFTYPM_CLIENT_ID", "client_id");
   const clientSecret = loadCredential("NIFTYPM_CLIENT_SECRET", "client_secret");
   const accessToken = loadCredential("NIFTYPM_ACCESS_TOKEN", "access_token");
