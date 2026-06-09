@@ -1,0 +1,357 @@
+{
+  "$schema": "https://opencode.ai/niftypm-project-plan-schema.json",
+  "$comment": "Source of truth for the LlamaIndex RAG MCP NiftyPM project. Generated and validated BEFORE any MCP tool calls. See s-niftypm references/niftypm-project-plan-schema.md for the format specification.",
+
+  "meta": {
+    "created": "2026-06-10T18:00:00Z",
+    "last_updated": "2026-06-10T19:00:00Z",
+    "generated_by": "a-build agent with s-niftypm v2 (three-phase pipeline)",
+    "project_nice_id": "AIE",
+    "niftypm_project_id": "KJ1kaUGQe8"
+  },
+
+  "project": {
+    "name": "LlamaIndex RAG MCP",
+    "description": "Local-first RAG MCP server for AI assistants. LlamaIndex pipeline with ChromaDB, BM25 hybrid retrieval, cross-encoder reranker, Ollama embeddings, and MCP protocol. Pre-fellowship scaffold for NeurMantiq. Current version: v1.4.0 (2026-05-31). Status: RAG retrieval layer validated. 19 ADRs, 10+ experiments completed.",
+    "portfolio": "RAG",
+    "portfolio_id": "A73q5g8iei",
+    "repo": "https://github.com/cmdaltctr/llamaindex-rag-mcp"
+  },
+
+  "labels": [
+    { "name": "P0 — Critical",    "color": "#FF0000", "id": "i3wjGa5YyH", "purpose": "Blocking, must-do immediately" },
+    { "name": "P1 — High",        "color": "#FF8C00", "id": "EWFazCtbTD", "purpose": "Important, do this sprint" },
+    { "name": "Research",         "color": "#00AA00", "id": "idcIrT_Owx", "purpose": "Literature review, experiments, analysis" },
+    { "name": "Experiment",       "color": "#00CED1", "id": "V1ttFATG7E", "purpose": "A/B testing, benchmarks, prototyping" },
+    { "name": "Writing",          "color": "#FF69B4", "id": "kShletU69s", "purpose": "Documentation, ADRs, papers" },
+    { "name": "Docs",             "color": "#A9A9A9", "id": "UVehWGDFdK", "purpose": "README, guides, API docs" },
+    { "name": "Infrastructure",   "color": "#4B0082", "id": "baWjaRRIvL", "purpose": "CI/CD, deployment, tooling" },
+    { "name": "Security",         "color": "#228B22", "id": "ACbEYHzfAR", "purpose": "Vulnerability remediation, auth" },
+    { "name": "Bug",              "color": "#DC143C", "id": "cs_4pACu7F", "purpose": "Bug fixes, regression tests" }
+  ],
+
+  "task_lists": [
+    { "name": "To Do — Planned Dev",          "id": "!C4wbtsNR7", "order": 100, "purpose": "Upcoming development work" },
+    { "name": "In Progress",                  "id": "lbnSm6!AUh", "order": 200, "purpose": "Currently active tasks" },
+    { "name": "Done — Completed Work",        "id": "tVuVk7WwJi", "order": 300, "purpose": "Completed experiments and releases" },
+    { "name": "Backlog — Lit-Search Findings","id": "oscFCxdTck", "order": 400, "purpose": "Prioritised backlog P0-P5" },
+    { "name": "NeurMantiq Prep Tasks",        "id": "X_LFnEWPnL", "order": 500, "purpose": "Pre-Phase 1 NeurMantiq readiness" },
+    { "name": "📊 Evaluation & Benchmarking", "id": "h1Kr_JOumC", "order": 600, "purpose": "Eval harness, metrics, corpus replication" }
+  ],
+
+  "milestones": [
+    { "name": "📋 M0: Project Overview",                                 "id": "ArphnUeiwx", "due": null,        "description": "Container-level overview (is_list:true)" },
+    { "name": "✅ M1: Core Pipeline (v1.0–v1.4, Completed)",            "id": "tGKmHdwWT!", "due": "2026-06-01", "description": "Completed experiments (Exp 1-10) and version releases" },
+    { "name": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",       "id": "7aZCIR3I4Z", "due": "2026-07-11", "description": "Active sprint: P0 reranker swap, P2 eval harness, P1 contextual retrieval" },
+    { "name": "🟡 M3: Quality Improvements (Backlog)",                   "id": "LdPLe3A5f!", "due": "2026-09-01", "description": "P3-P5 backlog + ColBERT + corpus replications" },
+    { "name": "🧠 M4: NeurMantiq Phase 1 Readiness",                    "id": "rTLUNA2VwU", "due": "2026-08-01", "description": "Arabic RAG, bge-m3 eval, eval harness prep" }
+  ],
+
+  "tasks": [
+    {
+      "id": "ao0h06TVUm", "nice_id": "AIE-20",
+      "name": "[P0] Swap reranker → gte-reranker-modernbert-base",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "P0 — Quick win, LOW effort, HIGH impact. Replace cross-encoder/ms-marco-MiniLM-L-6-v2 with Alibaba-NLP/gte-reranker-modernbert-base (149M params, Hit@1 83.0%, 2-3x faster than BERT-family). Directly addresses the 27% reranker regression from Exp 10.",
+      "labels": ["P0 — Critical", "Experiment"],
+      "story_points": 5,
+      "due_date": "2026-06-27",
+      "dependency": null,
+      "subtasks": [
+        "Verify ONNX export / local-inference feasibility on consumer hardware",
+        "A/B against current reranker on FreshStack LangChain + Qasper",
+        "Compare vs rerank-off baseline (must beat 0.738 Coverage@20 hybrid)",
+        "Write experiment protocol + results, update ADR if adopted"
+      ]
+    },
+    {
+      "id": "GET4SLh0cZ", "nice_id": "AIE-21",
+      "name": "[P1] Contextual retrieval (Anthropic chunk contextualisation)",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "P1 — MEDIUM effort, HIGH impact (+5-7pp). Anthropic-style: prepend LLM-generated context summary to each chunk before embedding. Use local Ollama LLM at INDEX time.",
+      "labels": ["P1 — High", "Research"],
+      "story_points": 8,
+      "due_date": "2026-07-18",
+      "dependency": "AIE-20",
+      "subtasks": [
+        "Design context-summary prompt (section headers, project names, technical terms)",
+        "Add ingestion-pipeline step in LlamaIndex to contextualise chunks pre-embedding",
+        "Benchmark on FreshStack Laravel/LangChain",
+        "Measure index-time cost on consumer hardware; write ADR"
+      ]
+    },
+    {
+      "id": "kWgSTiQCHc", "nice_id": "AIE-22",
+      "name": "[P2] Adopt FreshStack + RAGAS evaluation harness",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "P2 — MEDIUM effort. FreshStack (NeurIPS 2025) + RAGAS for repeatable evaluation. Laravel 10/11 domain is directly relevant to NeurMantiq stack.",
+      "labels": ["P1 — High", "Experiment"],
+      "story_points": 5,
+      "due_date": "2026-07-11",
+      "dependency": null,
+      "subtasks": [
+        "Integrate FreshStack harness (Laravel domain first)",
+        "Build custom eval set: 50-100 real queries with hand-annotated ground-truth chunks",
+        "Wire RAGAS metrics into a repeatable eval script",
+        "Document 'swap one variable → re-run evals → commit if improved' workflow"
+      ]
+    },
+    {
+      "id": "HDFadQPprN", "nice_id": "AIE-23",
+      "name": "[P5] Optional: upgrade embeddings to Qwen3-Embedding-4B (Q4)",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "P5 — LOW effort, optional. Qwen3-Embedding-4B Q4_K_M (~2.5GB VRAM) gains ~7 MTEB points + better code retrieval. Current qwen3:0.6b is well-chosen, so this is optional.",
+      "labels": ["Research", "Experiment"],
+      "story_points": 2,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Benchmark Qwen3-Embedding-4B (Q4) vs 0.6b on local hardware (latency + VRAM)",
+        "Run retrieval quality A/B on FreshStack + custom eval set",
+        "Decide based on quality gain vs ingestion-throughput cost"
+      ]
+    },
+    {
+      "id": "cTiW9pC61B", "nice_id": "AIE-24",
+      "name": "[P3] Parent-document retrieval",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "P3 — LOW effort (LlamaIndex built-in). Embed small chunks, return parent section to LLM. Use SentenceWindowNodeParser or AutoMergingRetriever.",
+      "labels": ["P1 — High", "Experiment"],
+      "story_points": 3,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Prototype AutoMergingRetriever / SentenceWindowNodeParser in the pipeline",
+        "Verify ChromaDB metadata supports parent linkage",
+        "Benchmark answer quality vs current flat-chunk retrieval"
+      ]
+    },
+    {
+      "id": "LxAEP9cNY6", "nice_id": "AIE-25",
+      "name": "[P4] HyDE for vague queries (optional, flag-gated)",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "P4 — LOW effort, optional. Generate hypothetical answer, embed THAT instead of raw query. +15-20% on vague queries. Gate behind a flag (default off).",
+      "labels": ["Experiment"],
+      "story_points": 3,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Add optional pre-retrieval HyDE step (local Ollama LLM)",
+        "Implement fallback to direct query embedding if confidence low",
+        "Gate behind a flag (default off); benchmark on vague-query subset"
+      ]
+    },
+    {
+      "id": "6P!P8_9s3X", "nice_id": "AIE-26",
+      "name": "[C] ColBERT late-interaction retrieval (architectural bet)",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "Backlog — ColBERT-style late interaction. Candidates: jina-colbert-v2, mxbai-colbert-large-v1. Best for exact token matching (code, APIs). Cost: per-token vectors, needs multi-vector store.",
+      "labels": ["Experiment", "Infrastructure"],
+      "story_points": 13,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Evaluate multi-vector store options vs ChromaDB",
+        "Prototype on technical/code query subset",
+        "Compare quality + storage cost vs gte-reranker baseline"
+      ]
+    },
+    {
+      "id": "3PXKKdxiiw", "nice_id": "AIE-27",
+      "name": "[Decision] Skip LightRAG/GraphRAG for now",
+      "task_list": "Backlog — Lit-Search Findings",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "Decision log: SKIP LightRAG/GraphRAG. Outperforms naive RAG on comprehensiveness but adds 2.3x latency. Revisit only if NeurMantiq needs multi-hop reasoning.",
+      "labels": ["P1 — High", "Research"],
+      "story_points": null,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "oROvFGdEv_", "nice_id": "AIE-19",
+      "name": "OpenSpec: Login watcher installer (macOS LaunchAgent)",
+      "task_list": "In Progress",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "Adds rag-mcp install-login-watcher command: macOS LaunchAgent generator for auto-starting the file watcher at login. macOS-only.",
+      "labels": [],
+      "story_points": null,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "LaunchAgent planning + core utilities",
+        "Plist write + launchctl bootstrap/bootout/kickstart operations",
+        "CLI + interactive wizard",
+        "Initial catch-up ingestion wired to ingest_path_async",
+        "Tests + docs"
+      ]
+    },
+    {
+      "id": "RZvqB8WXXz", "nice_id": "AIE-69",
+      "name": "EVAL-001: Integrate FreshStack evaluation harness (Laravel domain first)",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "Clone and integrate FreshStack benchmark. Start with Laravel 10/11. Verify α-nDCG@10, Coverage@20, Recall@50 metrics. Run baseline against v1.4.0.",
+      "labels": ["P0 — Critical", "Experiment", "Research"],
+      "story_points": 5,
+      "due_date": "2026-06-13",
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "PiborJ2hwt", "nice_id": "AIE-70",
+      "name": "EVAL-002: Build custom eval set — 50-100 hand-annotated technical queries",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "Curate 50-100 real-world technical queries with hand-annotated ground-truth chunks. Source: PyPI docs, LlamaIndex docs, ChromaDB docs, MCP spec, project source.",
+      "labels": ["Experiment", "Research"],
+      "story_points": 5,
+      "due_date": "2026-06-13",
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "e!O8UWpQb3", "nice_id": "AIE-71",
+      "name": "EVAL-003: Wire RAGAS metrics into CI pipeline",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🔴 M2: Reranker Fix + Evaluation (Current Sprint)",
+      "description": "Integrate RAGAS (Faithfulness, Answer Relevance, Context Recall, Context Precision) into CI. Non-regression: each PR must pass threshold.",
+      "labels": ["Experiment", "Infrastructure"],
+      "story_points": 3,
+      "due_date": "2026-06-13",
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "B6eu3t7At9", "nice_id": "AIE-72",
+      "name": "EVAL-004: Build Arabic/multilingual test corpus for NeurMantiq pre-validation",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🧠 M4: NeurMantiq Phase 1 Readiness",
+      "description": "Create 10-20 mixed Arabic-English legal/religious texts with 20-30 annotated queries. Validate Arabic chunking, embeddings, metadata extraction, multilingual reranker.",
+      "labels": ["P0 — Critical", "Research"],
+      "story_points": 5,
+      "due_date": "2026-06-13",
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "HfFkU6bu9v", "nice_id": "AIE-73",
+      "name": "EVAL-005: Re-run Exp 1 (Reranker threshold calibration) on FreshStack corpus",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "Replication: re-run Exp 1 threshold calibration on FreshStack (~200 queries). Literature confirms small-corpus RAG does NOT generalise to larger corpora.",
+      "labels": ["Experiment", "Research"],
+      "story_points": 3,
+      "due_date": "2026-06-13",
+      "dependency": "AIE-69",
+      "subtasks": []
+    },
+    {
+      "id": "E4Kp3H1fwE", "nice_id": "AIE-74",
+      "name": "EVAL-006: Re-run Exp 2 (Embedding model comparison) on FreshStack + custom eval set",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "Replication: re-run embedding comparison on FreshStack + custom set. Verify qwen3:0.6b maintains perfect retrieval at scale; check if larger models overtake it.",
+      "labels": ["Experiment", "Research"],
+      "story_points": 5,
+      "due_date": "2026-06-13",
+      "dependency": "AIE-70",
+      "subtasks": []
+    },
+    {
+      "id": "H8pXFMwtci", "nice_id": "AIE-75",
+      "name": "EVAL-007: Document Exp 5 as corpus-size generalisation failure",
+      "task_list": "📊 Evaluation & Benchmarking",
+      "milestone": "🟡 M3: Quality Improvements (Backlog)",
+      "description": "Documentation: Exp 5 RERANK_MAX_FETCH=50 was calibrated on small corpus and superseded by Exp 10. Write REPLICATION_NOTE.md. Cross-reference De Oliveira & Cerqueira (2026).",
+      "labels": ["Experiment", "Writing"],
+      "story_points": 2,
+      "due_date": "2026-06-13",
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "FLjYZI0qwv", "nice_id": "AIE-28",
+      "name": "Cross-reference: NeurMantiq Phase 1 RAG dependency",
+      "task_list": "NeurMantiq Prep Tasks",
+      "milestone": "🧠 M4: NeurMantiq Phase 1 Readiness",
+      "description": "Prerequisite: RAG MCP server must be stable before NeurMantiq Phase 1. The reranker regression must be fixed before ingesting real jurisprudence/fatwa corpora.",
+      "labels": ["P0 — Critical"],
+      "story_points": null,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": []
+    },
+    {
+      "id": "WvSq!K5NWI", "nice_id": "AIE-29",
+      "name": "Arabic/multilingual RAG validation (pre-Phase 1)",
+      "task_list": "NeurMantiq Prep Tasks",
+      "milestone": "🧠 M4: NeurMantiq Phase 1 Readiness",
+      "description": "Before ingesting real NeurMantiq corpora: verify Arabic text support in chunking/embeddings, test mixed PDF ingestion (OCR), validate non-Latin metadata extraction, evaluate multilingual reranker.",
+      "labels": ["P0 — Critical", "Research"],
+      "story_points": null,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Verify Arabic text support in chunking + embeddings",
+        "Test ingestion of mixed Arabic-English PDFs (Tesseract/OCR)",
+        "Validate metadata extraction works with non-Latin-script headings",
+        "Evaluate multilingual reranker vs monolingual gte-reranker",
+        "Document corpus ingestion workflow for supervised domain"
+      ]
+    },
+    {
+      "id": "lxRf51YwGu", "nice_id": "AIE-30",
+      "name": "Consider bge-m3 for multilingual NeurMantiq embedding strategy",
+      "task_list": "NeurMantiq Prep Tasks",
+      "milestone": "🧠 M4: NeurMantiq Phase 1 Readiness",
+      "description": "bge-m3 produces dense+sparse+ColBERT from single model. May be stronger fit for mixed Arabic-English natural language than for original technical docs.",
+      "labels": ["Research", "Experiment"],
+      "story_points": null,
+      "due_date": null,
+      "dependency": null,
+      "subtasks": [
+        "Test bge-m3 embedding quality on Arabic-English jurisprudence sample corpus",
+        "Compare single-model dense+sparse vs current Qwen3 + separate BM25",
+        "Evaluate local inference cost (568M params, ~1.2GB)"
+      ]
+    },
+    {
+      "id": "G_baJVcJPb", "nice_id": "AIE-31",
+      "name": "Ensure evaluation harness ready before NeurMantiq Phase 1 ingestion",
+      "task_list": "NeurMantiq Prep Tasks",
+      "milestone": "🧠 M4: NeurMantiq Phase 1 Readiness",
+      "description": "P2 task (AIE-22) should be completed before NeurMantiq Phase 1 begins. FreshStack Laravel domain is directly relevant (NeurMantiq stack: Laravel + Inertia + React).",
+      "labels": ["P0 — Critical", "Infrastructure"],
+      "story_points": null,
+      "due_date": null,
+      "dependency": "AIE-22",
+      "subtasks": []
+    }
+  ],
+
+  "dependency_graph": {
+    "AIE-35 (Write ADR) → AIE-33 (A/B test)": "blocking",
+    "AIE-31 (Eval ready) → AIE-22 (FreshStack)": "blocking",
+    "AIE-21 (P1 Contextual) → AIE-20 (P0 Reranker)": "blocking",
+    "AIE-30 (bge-m3) → AIE-29 (Arabic RAG)": "informational"
+  },
+
+  "_validation_checklist": [
+    "Every task has task_list assigned",
+    "Every task has milestone assigned",
+    "Labels referenced by name; IDs stored in labels[] array",
+    "Dependencies reference nice_id (e.g., AIE-22), not raw ID",
+    "Subtasks listed under parent task's subtasks[] array",
+    "Story points >0 for active tasks, null for decisions/notes",
+    "Due dates in ISO 8601 format",
+    "All milestones have descriptions and dates where applicable"
+  ]
+}
