@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerChatTools(server: any, client: NiftyPMClient) {
+export function registerChatTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List chats
+  if (!disabledTools.includes("niftypm_list_chats")) {
   server.addTool({
     name: "niftypm_list_chats",
     description: "List all chat conversations",
@@ -19,8 +20,10 @@ export function registerChatTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(chats, null, 2);
     },
   });
+  }
 
   // Get chat
+  if (!disabledTools.includes("niftypm_get_chat")) {
   server.addTool({
     name: "niftypm_get_chat",
     description: "Get a specific chat conversation by ID",
@@ -32,4 +35,5 @@ export function registerChatTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(chat, null, 2);
     },
   });
+  }
 }

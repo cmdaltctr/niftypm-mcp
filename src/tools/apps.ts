@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerAppsTools(server: any, client: NiftyPMClient) {
+export function registerAppsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List apps
+  if (!disabledTools.includes("niftypm_list_apps")) {
   server.addTool({
     name: "niftypm_list_apps",
     description: "List all installed applications",
@@ -17,8 +18,10 @@ export function registerAppsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(apps, null, 2);
     },
   });
+  }
 
   // Get app
+  if (!disabledTools.includes("niftypm_get_app")) {
   server.addTool({
     name: "niftypm_get_app",
     description: "Get a specific app by ID",
@@ -30,4 +33,5 @@ export function registerAppsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(app, null, 2);
     },
   });
+  }
 }

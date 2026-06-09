@@ -11,7 +11,7 @@ describe("registerTasksTools", () => {
   const server = createMockServer();
   const client = createMockClient();
 
-  registerTasksTools(server as any, client as any);
+  registerTasksTools(server as any, client as any, []);
 
   it("should register 23 task tools", () => {
     expect(server.addTool).toHaveBeenCalledTimes(23);

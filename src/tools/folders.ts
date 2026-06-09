@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerFoldersTools(server: any, client: NiftyPMClient) {
+export function registerFoldersTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // Get folder
+  if (!disabledTools.includes("niftypm_get_folder")) {
   server.addTool({
     name: "niftypm_get_folder",
     description: "Get the root folder structure",
@@ -19,8 +20,10 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(folder, null, 2);
     },
   });
+  }
 
   // Create folder
+  if (!disabledTools.includes("niftypm_create_folder")) {
   server.addTool({
     name: "niftypm_create_folder",
     description: "Create a new folder",
@@ -34,8 +37,10 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(folder, null, 2);
     },
   });
+  }
 
   // Get folder by ID
+  if (!disabledTools.includes("niftypm_get_folder_by_id")) {
   server.addTool({
     name: "niftypm_get_folder_by_id",
     description: "Get a specific folder by ID",
@@ -47,8 +52,10 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(folder, null, 2);
     },
   });
+  }
 
   // Get folder children
+  if (!disabledTools.includes("niftypm_get_folder_children")) {
   server.addTool({
     name: "niftypm_get_folder_children",
     description: "Get all children (files and subfolders) of a folder",
@@ -62,8 +69,10 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(children, null, 2);
     },
   });
+  }
 
   // Update folder
+  if (!disabledTools.includes("niftypm_update_folder")) {
   server.addTool({
     name: "niftypm_update_folder",
     description: "Update a folder",
@@ -77,8 +86,10 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(folder, null, 2);
     },
   });
+  }
 
   // Delete folder
+  if (!disabledTools.includes("niftypm_delete_folder")) {
   server.addTool({
     name: "niftypm_delete_folder",
     description: "Delete a folder",
@@ -90,4 +101,5 @@ export function registerFoldersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

@@ -11,7 +11,7 @@ describe("registerSubTeamsTools", () => {
   const server = createMockServer();
   const client = createMockClient();
 
-  registerSubTeamsTools(server as any, client as any);
+  registerSubTeamsTools(server as any, client as any, []);
 
   it("should register 8 subteam tools", () => {
     expect(server.addTool).toHaveBeenCalledTimes(8);

@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerDocumentsTools(server: any, client: NiftyPMClient) {
+export function registerDocumentsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List documents
+  if (!disabledTools.includes("niftypm_list_documents")) {
   server.addTool({
     name: "niftypm_list_documents",
     description: "List documents in a project",
@@ -21,8 +22,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(documents, null, 2);
     },
   });
+  }
 
   // Get document by ID
+  if (!disabledTools.includes("niftypm_get_document")) {
   server.addTool({
     name: "niftypm_get_document",
     description: "Get a specific document by ID",
@@ -34,8 +37,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(document, null, 2);
     },
   });
+  }
 
   // Create document
+  if (!disabledTools.includes("niftypm_create_document")) {
   server.addTool({
     name: "niftypm_create_document",
     description: "Create a new document",
@@ -49,8 +54,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(document, null, 2);
     },
   });
+  }
 
   // Update document
+  if (!disabledTools.includes("niftypm_update_document")) {
   server.addTool({
     name: "niftypm_update_document",
     description: "Update an existing document",
@@ -64,8 +71,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(document, null, 2);
     },
   });
+  }
 
   // Delete document
+  if (!disabledTools.includes("niftypm_delete_document")) {
   server.addTool({
     name: "niftypm_delete_document",
     description: "Delete a document",
@@ -77,8 +86,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Move document
+  if (!disabledTools.includes("niftypm_move_document")) {
   server.addTool({
     name: "niftypm_move_document",
     description: "Move a document to another project",
@@ -91,10 +102,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // ── Personal documents ──────────────────────────────────────────────
 
   // Create personal document
+  if (!disabledTools.includes("niftypm_create_personal_document")) {
   server.addTool({
     name: "niftypm_create_personal_document",
     description: "Create a new personal document (not tied to a project)",
@@ -107,8 +120,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(document, null, 2);
     },
   });
+  }
 
   // Get personal documents
+  if (!disabledTools.includes("niftypm_get_personal_documents")) {
   server.addTool({
     name: "niftypm_get_personal_documents",
     description: "List personal documents for the current user",
@@ -121,10 +136,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(documents, null, 2);
     },
   });
+  }
 
   // ── Document members ────────────────────────────────────────────────
 
   // Add document members
+  if (!disabledTools.includes("niftypm_add_document_members")) {
   server.addTool({
     name: "niftypm_add_document_members",
     description: "Add members to a document",
@@ -137,8 +154,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Remove document members
+  if (!disabledTools.includes("niftypm_remove_document_members")) {
   server.addTool({
     name: "niftypm_remove_document_members",
     description: "Remove members from a document",
@@ -151,10 +170,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // ── Document versioning ─────────────────────────────────────────────
 
   // Change document (create new version)
+  if (!disabledTools.includes("niftypm_change_document")) {
   server.addTool({
     name: "niftypm_change_document",
     description: "Create a new version of a document",
@@ -168,10 +189,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // ── Document labels ─────────────────────────────────────────────────
 
   // Add document labels
+  if (!disabledTools.includes("niftypm_add_document_labels")) {
   server.addTool({
     name: "niftypm_add_document_labels",
     description: "Add labels to a document",
@@ -184,8 +207,10 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Remove document labels
+  if (!disabledTools.includes("niftypm_remove_document_labels")) {
   server.addTool({
     name: "niftypm_remove_document_labels",
     description: "Remove labels from a document",
@@ -198,4 +223,5 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

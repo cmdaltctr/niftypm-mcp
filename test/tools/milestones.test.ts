@@ -11,7 +11,7 @@ describe("registerMilestonesTools", () => {
   const server = createMockServer();
   const client = createMockClient();
 
-  registerMilestonesTools(server as any, client as any);
+  registerMilestonesTools(server as any, client as any, []);
 
   it("should register 9 milestone tools", () => {
     expect(server.addTool).toHaveBeenCalledTimes(9);

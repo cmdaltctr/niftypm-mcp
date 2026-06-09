@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerTemplatesTools(server: any, client: NiftyPMClient) {
+export function registerTemplatesTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List templates
+  if (!disabledTools.includes("niftypm_list_templates")) {
   server.addTool({
     name: "niftypm_list_templates",
     description: "List all project templates",
@@ -17,4 +18,5 @@ export function registerTemplatesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(templates, null, 2);
     },
   });
+  }
 }

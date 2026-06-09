@@ -42,6 +42,7 @@ function createConfig(overrides: Partial<NiftyPMConfig> = {}): NiftyPMConfig {
     refreshToken: "valid-refresh",
     baseUrl: "https://openapi.niftypm.com",
     enabledTools: allToolsEnabled,
+    disabledTools: [],
     ...overrides,
   };
 }
@@ -174,5 +175,41 @@ describe("validateConfig", () => {
     expect(() => validateConfig(config)).toThrow(
       "Please copy .env.example to .env and fill in your credentials"
     );
+  });
+
+  it("should default disabledTools to empty array when DISABLED_TOOLS is not set", () => {
+    delete process.env.DISABLED_TOOLS;
+    const config = loadConfig();
+    expect(config.disabledTools).toEqual([]);
+  });
+
+  it("should parse DISABLED_TOOLS as comma-separated list", () => {
+    process.env.DISABLED_TOOLS = "niftypm_delete_document,niftypm_archive_task";
+    const config = loadConfig();
+    expect(config.disabledTools).toEqual([
+      "niftypm_delete_document",
+      "niftypm_archive_task",
+    ]);
+  });
+
+  it("should trim whitespace from DISABLED_TOOLS entries", () => {
+    process.env.DISABLED_TOOLS = " niftypm_delete_document , niftypm_archive_task ";
+    const config = loadConfig();
+    expect(config.disabledTools).toEqual([
+      "niftypm_delete_document",
+      "niftypm_archive_task",
+    ]);
+  });
+
+  it("should return empty array for empty DISABLED_TOOLS string", () => {
+    process.env.DISABLED_TOOLS = "";
+    const config = loadConfig();
+    expect(config.disabledTools).toEqual([]);
+  });
+
+  it("should return empty array for DISABLED_TOOLS with only whitespace", () => {
+    process.env.DISABLED_TOOLS = "   ";
+    const config = loadConfig();
+    expect(config.disabledTools).toEqual([]);
   });
 });

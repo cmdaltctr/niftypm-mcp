@@ -1,221 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NiftyPM MCP Configurator</title>
-<style>
-:root { --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8; --danger: #f87171; --green: #4ade80; }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem 1rem; }
-main { max-width: 640px; margin: 0 auto; }
-h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-h2 { font-size: 1.15rem; margin: 1.5rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
-h3 { font-size: 0.9rem; color: var(--muted); margin: 1rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.privacy-note { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: var(--card); border-radius: 6px; border-left: 3px solid var(--accent); }
-.form-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
-.form-row label { flex: 0 0 140px; font-size: 0.85rem; color: var(--muted); }
-.form-row input { flex: 1; padding: 0.5rem 0.75rem; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; font-family: 'SF Mono', 'Fira Code', monospace; }
-.form-row input:focus { outline: none; border-color: var(--accent); }
-.show-hide-btn { flex: 0 0 auto; padding: 0.4rem 0.6rem; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-.show-hide-btn:hover { color: var(--text); border-color: var(--accent); }
-
-.toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem 1rem; }
-.toggle-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; }
-.toggle-row label { font-size: 0.85rem; cursor: pointer; user-select: none; }
-.toggle-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 22px; cursor: pointer; transition: background 0.2s; }
-.toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
-.toggle-switch input:checked + .toggle-slider { background: var(--green); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
-
-.actions { margin-top: 1.5rem; }
-#dl-btn { display: block; width: 100%; padding: 0.8rem 1.5rem; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-#dl-btn:hover { opacity: 0.9; }
-#dl-btn:active { opacity: 0.75; }
-.warning { margin-top: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(248,113,113,0.15); border: 1px solid var(--danger); border-radius: 6px; color: var(--danger); font-size: 0.85rem; display: none; }
-.warning.visible { display: block; }
-.guidance { margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
-.guidance code { background: var(--card); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.8rem; }</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NiftyPM MCP Configurator</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main>
-<h1>NiftyPM MCP Configurator</h1>
-<p class="privacy-note">🔒 This page runs entirely in your browser. No data is sent anywhere.</p>
+  <div class="container">
+    <header>
+      <h1>NiftyPM MCP Configurator</h1>
+      <p class="notice">This page runs entirely in your browser. No data is sent anywhere.</p>
+    </header>
 
-<section>
-<h2>OAuth Credentials</h2>
-<div class="form-row">
-<label for="cred-client-id">Client ID</label>
-<input type="text" id="cred-client-id" placeholder="your_client_id" autocomplete="off">
-</div>
-<div class="form-row">
-<label for="cred-client-secret">Client Secret</label>
-<input type="password" id="cred-client-secret" placeholder="your_client_secret" autocomplete="off">
-<button type="button" class="show-hide-btn" data-target="cred-client-secret">Show</button>
-</div>
-<div class="form-row">
-<label for="cred-access-token">Access Token</label>
-<input type="password" id="cred-access-token" placeholder="your_access_token" autocomplete="off">
-<button type="button" class="show-hide-btn" data-target="cred-access-token">Show</button>
-</div>
-<div class="form-row">
-<label for="cred-refresh-token">Refresh Token</label>
-<input type="password" id="cred-refresh-token" placeholder="your_refresh_token" autocomplete="off">
-<button type="button" class="show-hide-btn" data-target="cred-refresh-token">Show</button>
-</div>
-</section>
-<section>
-<h2>Tool Configuration</h2>
-<p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem;">All tools are enabled by default. Toggle off any you don't need.</p>
+    <section id="credentials">
+      <h2>OAuth Credentials</h2>
+      <div class="field">
+        <label for="client-id">Client ID</label>
+        <input type="text" id="client-id" placeholder="your_client_id_here">
+      </div>
+      <div class="field">
+        <label for="client-secret">Client Secret</label>
+        <div class="password-wrapper">
+          <input type="password" id="client-secret" placeholder="your_client_secret_here">
+          <button type="button" class="toggle-pw" data-target="client-secret">Show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="access-token">Access Token</label>
+        <div class="password-wrapper">
+          <input type="password" id="access-token" placeholder="your_access_token_here">
+          <button type="button" class="toggle-pw" data-target="access-token">Show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="refresh-token">Refresh Token (required for stable connections)</label>
+        <div class="password-wrapper">
+          <input type="password" id="refresh-token" placeholder="your_refresh_token_here">
+          <button type="button" class="toggle-pw" data-target="refresh-token">Show</button>
+        </div>
+      </div>
+    </section>
 
-<h3>Core Domains</h3>
-<div class="toggle-grid" id="core-toggles"></div>
+    <section id="tool-config">
+      <h2>Tool Configuration</h2>
+      <div class="tabs">
+        <button id="tab-simple" class="tab active">Simple</button>
+        <button id="tab-advanced" class="tab">Advanced</button>
+      </div>
+      <div id="simple-tab-content" class="tab-content active"></div>
+      <div id="advanced-tab-content" class="tab-content"></div>
+    </section>
 
-<h3>Extended Domains</h3>
-<div class="toggle-grid" id="extended-toggles"></div>
-</section>
-
-<section class="actions">
-<button id="dl-btn" type="button">Download .env</button>
-<div class="warning" id="warning"></div>
-<p class="guidance">Save this file as <code>.env</code> in your project root, then restart the MCP server.<br><strong>Back up any existing <code>.env</code> first.</strong></p>
-</section>
-</main>
-<script>
-// Hardcoded domain → env-var mapping (do NOT derive by case conversion —
-// ENABLE_TASK_GROUPS and ENABLE_SUBTEAMS are irregular).
-var DOMAINS = [
-  // Core domains (original 8)
-  { label: "Files",                env: "ENABLE_FILES",        group: "core" },
-  { label: "Labels / Tags",        env: "ENABLE_LABELS",       group: "core" },
-  { label: "Documents",            env: "ENABLE_DOCUMENTS",    group: "core" },
-  { label: "Milestones",           env: "ENABLE_MILESTONES",   group: "core" },
-  { label: "Messages",             env: "ENABLE_MESSAGES",     group: "core" },
-  { label: "Task Groups",          env: "ENABLE_TASK_GROUPS",  group: "core" },
-  { label: "Tasks",                env: "ENABLE_TASKS",        group: "core" },
-  { label: "Subteams / Portfolios",env: "ENABLE_SUBTEAMS",     group: "core" },
-  // Extended domains (new 12)
-  { label: "Projects",             env: "ENABLE_PROJECTS",     group: "extended" },
-  { label: "Folders",              env: "ENABLE_FOLDERS",      group: "extended" },
-  { label: "Members",              env: "ENABLE_MEMBERS",      group: "extended" },
-  { label: "Webhooks",             env: "ENABLE_WEBHOOKS",     group: "extended" },
-  { label: "Time Tracking",        env: "ENABLE_TIME",         group: "extended" },
-  { label: "Custom Fields",        env: "ENABLE_FIELDS",       group: "extended" },
-  { label: "Apps",                 env: "ENABLE_APPS",         group: "extended" },
-  { label: "Chat",                 env: "ENABLE_CHAT",         group: "extended" },
-  { label: "Invite",               env: "ENABLE_INVITE",       group: "extended" },
-  { label: "Templates",            env: "ENABLE_TEMPLATES",    group: "extended" },
-  { label: "Users",                env: "ENABLE_USERS",        group: "extended" },
-  { label: "Auth",                 env: "ENABLE_AUTH",         group: "extended" },
-];
-// Render toggle switches into the two groups
-function renderToggles() {
-  var core = document.getElementById("core-toggles");
-  var ext = document.getElementById("extended-toggles");
-  DOMAINS.forEach(function(d) {
-    var row = document.createElement("div");
-    row.className = "toggle-row";
-    var sw = document.createElement("label");
-    sw.className = "toggle-switch";
-    var cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = true;
-    cb.setAttribute("data-env", d.env);
-    var sl = document.createElement("span");
-    sl.className = "toggle-slider";
-    sw.appendChild(cb);
-    sw.appendChild(sl);
-    var lbl = document.createElement("label");
-    lbl.textContent = d.label;
-    row.appendChild(sw);
-    row.appendChild(lbl);
-    (d.group === "core" ? core : ext).appendChild(row);
-  });
-}
-// Credential input helpers
-function getCred(id) {
-  var el = document.getElementById(id);
-  return el ? el.value.trim() : "";
-}
-
-// Show/hide toggle for password fields
-function setupShowHide() {
-  document.querySelectorAll(".show-hide-btn").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      var targetId = this.getAttribute("data-target");
-      var input = document.getElementById(targetId);
-      if (!input) return;
-      if (input.type === "password") {
-        input.type = "text";
-        this.textContent = "Hide";
-      } else {
-        input.type = "password";
-        this.textContent = "Show";
-      }
-    });
-  });
-}
-// Generate .env text matching .env.example format exactly
-function generateEnv() {
-  var lines = [];
-  // Header
-  lines.push("# NiftyPM OAuth Credentials");
-  lines.push("NIFTYPM_CLIENT_ID=" + getCred("cred-client-id"));
-  lines.push("NIFTYPM_CLIENT_SECRET=" + getCred("cred-client-secret"));
-  lines.push("NIFTYPM_ACCESS_TOKEN=" + getCred("cred-access-token"));
-  lines.push("NIFTYPM_REFRESH_TOKEN=" + getCred("cred-refresh-token"));
-  lines.push("");
-  // Tool config header
-  lines.push("# Tool Configuration (set to \"false\" to disable)");
-  // Core domains
-  DOMAINS.filter(function(d) { return d.group === "core"; }).forEach(function(d) {
-    var cb = document.querySelector('input[data-env="' + d.env + '"]');
-    lines.push(d.env + "=" + (cb && cb.checked ? "true" : "false"));
-  });
-  lines.push("");
-  lines.push("# New domains");
-  // Extended domains
-  DOMAINS.filter(function(d) { return d.group === "extended"; }).forEach(function(d) {
-    var cb = document.querySelector('input[data-env="' + d.env + '"]');
-    lines.push(d.env + "=" + (cb && cb.checked ? "true" : "false"));
-  });
-  return lines.join("\n") + "\n";
-}
-// Download via Blob + synthetic anchor click — no network request
-function downloadEnv() {
-  // Non-blocking warning for empty credentials
-  var warnEl = document.getElementById("warning");
-  var missing = [];
-  if (!getCred("cred-client-id")) missing.push("Client ID");
-  if (!getCred("cred-client-secret")) missing.push("Client Secret");
-  if (!getCred("cred-access-token")) missing.push("Access Token");
-  if (!getCred("cred-refresh-token")) missing.push("Refresh Token");
-
-  if (missing.length > 0) {
-    warnEl.textContent = "⚠ Warning: " + missing.join(", ") + " " +
-      (missing.length === 1 ? "is" : "are") + " empty. The server won't start without all credentials.";
-    warnEl.className = "warning visible";
-  } else {
-    warnEl.className = "warning";
-  }
-
-  var envText = generateEnv();
-  var blob = new Blob([envText], { type: "text/plain" });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = ".env";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-// Init
-renderToggles();
-setupShowHide();
-document.getElementById("dl-btn").addEventListener("click", downloadEnv);
-</script>
+    <section id="actions">
+      <p class="guidance">
+        <strong>Instructions:</strong> Click the button below to download your configuration file.
+        Your browser may save it as <code>env.txt</code> — <strong>rename it to <code>.env</code></strong>
+        and place it in your project root. <strong>Back up any existing <code>.env</code> first.</strong>
+        Restart your MCP server for changes to take effect.
+      </p>
+      <button id="download-btn" class="primary">Download .env</button>
+      <p id="warning" class="warning"></p>
+    </section>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>

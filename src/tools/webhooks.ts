@@ -54,8 +54,9 @@ const WebhookUrlSchema = z
     { message: "Webhook URL must target a public, non-internal host" }
   );
 
-export function registerWebhooksTools(server: any, client: NiftyPMClient) {
+export function registerWebhooksTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List webhooks
+  if (!disabledTools.includes("niftypm_list_webhooks")) {
   server.addTool({
     name: "niftypm_list_webhooks",
     description: "List all webhooks for an app",
@@ -67,8 +68,10 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(redactWebhookSecrets(webhooks), null, 2);
     },
   });
+  }
 
   // Create webhook
+  if (!disabledTools.includes("niftypm_create_webhook")) {
   server.addTool({
     name: "niftypm_create_webhook",
     description: "Create a new webhook",
@@ -83,8 +86,10 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(redactWebhookSecrets(webhook), null, 2);
     },
   });
+  }
 
   // Update webhook
+  if (!disabledTools.includes("niftypm_update_webhook")) {
   server.addTool({
     name: "niftypm_update_webhook",
     description: "Update an existing webhook",
@@ -99,8 +104,10 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(redactWebhookSecrets(webhook), null, 2);
     },
   });
+  }
 
   // Delete webhook
+  if (!disabledTools.includes("niftypm_delete_webhook")) {
   server.addTool({
     name: "niftypm_delete_webhook",
     description: "Delete a webhook",
@@ -112,4 +119,5 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

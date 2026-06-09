@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerUsersTools(server: any, client: NiftyPMClient) {
+export function registerUsersTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // Get current user
+  if (!disabledTools.includes("niftypm_get_current_user")) {
   server.addTool({
     name: "niftypm_get_current_user",
     description: "Get the currently authenticated user profile",
@@ -17,4 +18,5 @@ export function registerUsersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(user, null, 2);
     },
   });
+  }
 }

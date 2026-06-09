@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerLabelsTools(server: any, client: NiftyPMClient) {
+export function registerLabelsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List labels
+  if (!disabledTools.includes("niftypm_list_labels")) {
   server.addTool({
     name: "niftypm_list_labels",
     description: "List all labels/tags",
@@ -19,8 +20,10 @@ export function registerLabelsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(labels, null, 2);
     },
   });
+  }
 
   // Get label by ID
+  if (!disabledTools.includes("niftypm_get_label")) {
   server.addTool({
     name: "niftypm_get_label",
     description: "Get a specific label by ID",
@@ -32,8 +35,10 @@ export function registerLabelsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(label, null, 2);
     },
   });
+  }
 
   // Create label
+  if (!disabledTools.includes("niftypm_create_label")) {
   server.addTool({
     name: "niftypm_create_label",
     description: "Create a new label/tag",
@@ -47,8 +52,10 @@ export function registerLabelsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(label, null, 2);
     },
   });
+  }
 
   // Update label
+  if (!disabledTools.includes("niftypm_update_label")) {
   server.addTool({
     name: "niftypm_update_label",
     description: "Update an existing label",
@@ -62,8 +69,10 @@ export function registerLabelsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(label, null, 2);
     },
   });
+  }
 
   // Delete label
+  if (!disabledTools.includes("niftypm_delete_label")) {
   server.addTool({
     name: "niftypm_delete_label",
     description: "Delete a label",
@@ -75,4 +84,5 @@ export function registerLabelsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerInviteTools(server: any, client: NiftyPMClient) {
+export function registerInviteTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List invite links
+  if (!disabledTools.includes("niftypm_list_invite_links")) {
   server.addTool({
     name: "niftypm_list_invite_links",
     description: "List all active invite links",
@@ -17,4 +18,5 @@ export function registerInviteTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(invites, null, 2);
     },
   });
+  }
 }

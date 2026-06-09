@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerMilestonesTools(server: any, client: NiftyPMClient) {
+export function registerMilestonesTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List milestones
+  if (!disabledTools.includes("niftypm_list_milestones")) {
   server.addTool({
     name: "niftypm_list_milestones",
     description: "List milestones in a project",
@@ -21,8 +22,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(milestones, null, 2);
     },
   });
+  }
 
   // Get milestone by ID
+  if (!disabledTools.includes("niftypm_get_milestone")) {
   server.addTool({
     name: "niftypm_get_milestone",
     description: "Get a specific milestone by ID",
@@ -34,8 +37,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(milestone, null, 2);
     },
   });
+  }
 
   // Create milestone
+  if (!disabledTools.includes("niftypm_create_milestone")) {
   server.addTool({
     name: "niftypm_create_milestone",
     description: "Create a new milestone",
@@ -50,8 +55,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(milestone, null, 2);
     },
   });
+  }
 
   // Update milestone
+  if (!disabledTools.includes("niftypm_update_milestone")) {
   server.addTool({
     name: "niftypm_update_milestone",
     description: "Update an existing milestone",
@@ -66,8 +73,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(milestone, null, 2);
     },
   });
+  }
 
   // Delete milestone
+  if (!disabledTools.includes("niftypm_delete_milestone")) {
   server.addTool({
     name: "niftypm_delete_milestone",
     description: "Delete a milestone",
@@ -79,8 +88,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Archive milestone
+  if (!disabledTools.includes("niftypm_archive_milestone")) {
   server.addTool({
     name: "niftypm_archive_milestone",
     description: "Archive a milestone",
@@ -92,8 +103,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Move milestone to project
+  if (!disabledTools.includes("niftypm_move_milestone")) {
   server.addTool({
     name: "niftypm_move_milestone",
     description: "Move a milestone to another project",
@@ -106,8 +119,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Tie tasks to milestone
+  if (!disabledTools.includes("niftypm_tie_milestone_tasks")) {
   server.addTool({
     name: "niftypm_tie_milestone_tasks",
     description: "Tie tasks to a milestone",
@@ -120,8 +135,10 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Untie tasks from milestone
+  if (!disabledTools.includes("niftypm_untie_milestone_tasks")) {
   server.addTool({
     name: "niftypm_untie_milestone_tasks",
     description: "Untie tasks from a milestone",
@@ -134,4 +151,5 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

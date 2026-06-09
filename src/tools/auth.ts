@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerAuthTools(server: any, client: NiftyPMClient) {
+export function registerAuthTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // Refresh token
+  if (!disabledTools.includes("niftypm_refresh_token")) {
   server.addTool({
     name: "niftypm_refresh_token",
     description: "Refresh the authentication token",
@@ -37,4 +38,5 @@ export function registerAuthTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(safe, null, 2);
     },
   });
+  }
 }

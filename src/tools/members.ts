@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerMembersTools(server: any, client: NiftyPMClient) {
+export function registerMembersTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List members
+  if (!disabledTools.includes("niftypm_list_members")) {
   server.addTool({
     name: "niftypm_list_members",
     description: "List all team members",
@@ -19,8 +20,10 @@ export function registerMembersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(members, null, 2);
     },
   });
+  }
 
   // Get member
+  if (!disabledTools.includes("niftypm_get_member")) {
   server.addTool({
     name: "niftypm_get_member",
     description: "Get a specific team member by ID",
@@ -32,4 +35,5 @@ export function registerMembersTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(member, null, 2);
     },
   });
+  }
 }

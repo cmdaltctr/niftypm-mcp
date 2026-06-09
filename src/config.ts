@@ -39,6 +39,7 @@ export interface NiftyPMConfig {
     users: boolean;
     auth: boolean;
   };
+  disabledTools: string[];
 }
 
 /**
@@ -67,6 +68,18 @@ function loadCredential(envKey: string, secretFileName: string): string {
   const envValue = process.env[envKey] || "";
   if (envValue) return envValue;
   return readSecretFile(secretFileName);
+}
+
+/**
+ * Parse the DISABLED_TOOLS env var into a clean string array.
+ * Splits on comma, trims whitespace from each entry, and filters
+ * out empty strings so that trailing commas don't produce phantom
+ * entries. Returns [] when the env var is absent or empty.
+ */
+function parseDisabledTools(): string[] {
+  const raw = process.env.DISABLED_TOOLS || "";
+  if (!raw.trim()) return [];
+  return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
 }
 
 /**
@@ -109,6 +122,7 @@ export function loadConfig(): NiftyPMConfig {
       users: process.env.ENABLE_USERS !== "false",
       auth: process.env.ENABLE_AUTH !== "false",
     },
+    disabledTools: parseDisabledTools(),
   };
 }
 

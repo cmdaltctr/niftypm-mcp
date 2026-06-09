@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerTimeTools(server: any, client: NiftyPMClient) {
+export function registerTimeTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // Get time report
+  if (!disabledTools.includes("niftypm_get_time_report")) {
   server.addTool({
     name: "niftypm_get_time_report",
     description: "Get time tracking report",
@@ -22,8 +23,10 @@ export function registerTimeTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(report, null, 2);
     },
   });
+  }
 
   // Get time duration
+  if (!disabledTools.includes("niftypm_get_time_duration")) {
   server.addTool({
     name: "niftypm_get_time_duration",
     description: "Get total time duration for tasks or projects",
@@ -36,4 +39,5 @@ export function registerTimeTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(duration, null, 2);
     },
   });
+  }
 }

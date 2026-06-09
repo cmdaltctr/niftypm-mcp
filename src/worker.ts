@@ -45,64 +45,64 @@ function createServer() {
 
   // Register tools based on configuration
   if (config.enabledTools.files) {
-    registerFilesTools(server as any, client);
+    registerFilesTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.labels) {
-    registerLabelsTools(server as any, client);
+    registerLabelsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.documents) {
-    registerDocumentsTools(server as any, client);
+    registerDocumentsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.milestones) {
-    registerMilestonesTools(server as any, client);
+    registerMilestonesTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.messages) {
-    registerMessagesTools(server as any, client);
+    registerMessagesTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.taskGroups) {
-    registerTaskGroupsTools(server as any, client);
+    registerTaskGroupsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.tasks) {
-    registerTasksTools(server as any, client);
+    registerTasksTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.subTeams) {
-    registerSubTeamsTools(server as any, client);
+    registerSubTeamsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.projects) {
-    registerProjectsTools(server as any, client);
+    registerProjectsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.folders) {
-    registerFoldersTools(server as any, client);
+    registerFoldersTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.members) {
-    registerMembersTools(server as any, client);
+    registerMembersTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.webhooks) {
-    registerWebhooksTools(server as any, client);
+    registerWebhooksTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.time) {
-    registerTimeTools(server as any, client);
+    registerTimeTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.fields) {
-    registerFieldsTools(server as any, client);
+    registerFieldsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.apps) {
-    registerAppsTools(server as any, client);
+    registerAppsTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.chat) {
-    registerChatTools(server as any, client);
+    registerChatTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.invite) {
-    registerInviteTools(server as any, client);
+    registerInviteTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.templates) {
-    registerTemplatesTools(server as any, client);
+    registerTemplatesTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.users) {
-    registerUsersTools(server as any, client);
+    registerUsersTools(server as any, client, config.disabledTools);
   }
   if (config.enabledTools.auth) {
-    registerAuthTools(server as any, client);
+    registerAuthTools(server as any, client, config.disabledTools);
   }
 
   return server;

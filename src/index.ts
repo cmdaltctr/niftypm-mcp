@@ -46,65 +46,65 @@ const server = new FastMCP({
 
 // Register tools based on configuration
 if (config.enabledTools.files) {
-  registerFilesTools(server, client);
+  registerFilesTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.labels) {
-  registerLabelsTools(server, client);
+  registerLabelsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.documents) {
-  registerDocumentsTools(server, client);
+  registerDocumentsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.milestones) {
-  registerMilestonesTools(server, client);
+  registerMilestonesTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.messages) {
-  registerMessagesTools(server, client);
+  registerMessagesTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.taskGroups) {
-  registerTaskGroupsTools(server, client);
+  registerTaskGroupsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.tasks) {
-  registerTasksTools(server, client);
+  registerTasksTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.subTeams) {
-  registerSubTeamsTools(server, client);
+  registerSubTeamsTools(server, client, config.disabledTools);
 }
 // New domains
 if (config.enabledTools.projects) {
-  registerProjectsTools(server, client);
+  registerProjectsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.folders) {
-  registerFoldersTools(server, client);
+  registerFoldersTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.members) {
-  registerMembersTools(server, client);
+  registerMembersTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.webhooks) {
-  registerWebhooksTools(server, client);
+  registerWebhooksTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.time) {
-  registerTimeTools(server, client);
+  registerTimeTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.fields) {
-  registerFieldsTools(server, client);
+  registerFieldsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.apps) {
-  registerAppsTools(server, client);
+  registerAppsTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.chat) {
-  registerChatTools(server, client);
+  registerChatTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.invite) {
-  registerInviteTools(server, client);
+  registerInviteTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.templates) {
-  registerTemplatesTools(server, client);
+  registerTemplatesTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.users) {
-  registerUsersTools(server, client);
+  registerUsersTools(server, client, config.disabledTools);
 }
 if (config.enabledTools.auth) {
-  registerAuthTools(server, client);
+  registerAuthTools(server, client, config.disabledTools);
 }
 
 // Determine transport from environment

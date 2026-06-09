@@ -7,7 +7,7 @@ import { z } from "zod";
 import type { FastMCP } from "fastmcp";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
+export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, disabledTools: string[] = []) {
   // List messages
   const ListMessagesSchema = z.object({
     chat_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by chat ID"),
@@ -18,6 +18,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
     offset: z.number().optional().describe("Pagination offset"),
   });
 
+  if (!disabledTools.includes("niftypm_list_messages")) {
   server.addTool({
     name: "niftypm_list_messages",
     description: "List messages in a chat or discussion",
@@ -27,12 +28,14 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(messages, null, 2);
     },
   });
+  }
 
   // Get message by ID
   const GetMessageSchema = z.object({
     message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
   });
 
+  if (!disabledTools.includes("niftypm_get_message")) {
   server.addTool({
     name: "niftypm_get_message",
     description: "Get a specific message by ID",
@@ -42,6 +45,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(message, null, 2);
     },
   });
+  }
 
   // Create message
   const CreateMessageSchema = z.object({
@@ -50,6 +54,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
     type: z.enum(["text", "gif", "document"]).optional().default("text").describe("Message type"),
   });
 
+  if (!disabledTools.includes("niftypm_create_message")) {
   server.addTool({
     name: "niftypm_create_message",
     description: "Create a new message in a chat",
@@ -59,6 +64,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(message, null, 2);
     },
   });
+  }
 
   // Update message
   const UpdateMessageSchema = z.object({
@@ -66,6 +72,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
     text: z.string().describe("Message text content"),
   });
 
+  if (!disabledTools.includes("niftypm_update_message")) {
   server.addTool({
     name: "niftypm_update_message",
     description: "Update an existing message",
@@ -75,11 +82,13 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(message, null, 2);
     },
   });
+  }
   // Delete message
   const DeleteMessageSchema = z.object({
     message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
   });
 
+  if (!disabledTools.includes("niftypm_delete_message")) {
   server.addTool({
     name: "niftypm_delete_message",
     description: "Delete a message",
@@ -89,12 +98,14 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Mark message as seen
   const MarkMessageSeenSchema = z.object({
     message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
   });
 
+  if (!disabledTools.includes("niftypm_mark_message_seen")) {
   server.addTool({
     name: "niftypm_mark_message_seen",
     description: "Mark a message as seen",
@@ -104,12 +115,14 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Mark message as heard
   const MarkMessageHeardSchema = z.object({
     message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
   });
 
+  if (!disabledTools.includes("niftypm_mark_message_heard")) {
   server.addTool({
     name: "niftypm_mark_message_heard",
     description: "Mark a message as heard",
@@ -119,4 +132,5 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

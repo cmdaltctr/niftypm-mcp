@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
+export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List subteams
+  if (!disabledTools.includes("niftypm_list_subteams")) {
   server.addTool({
     name: "niftypm_list_subteams",
     description: "List all subteams/portfolios",
@@ -20,8 +21,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(subteams, null, 2);
     },
   });
+  }
 
   // Get subteam by ID
+  if (!disabledTools.includes("niftypm_get_subteam")) {
   server.addTool({
     name: "niftypm_get_subteam",
     description: "Get a specific subteam/portfolio by ID",
@@ -33,8 +36,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(subteam, null, 2);
     },
   });
+  }
 
   // Create subteam
+  if (!disabledTools.includes("niftypm_create_subteam")) {
   server.addTool({
     name: "niftypm_create_subteam",
     description: "Create a new subteam/portfolio",
@@ -47,8 +52,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(subteam, null, 2);
     },
   });
+  }
 
   // Update subteam
+  if (!disabledTools.includes("niftypm_update_subteam")) {
   server.addTool({
     name: "niftypm_update_subteam",
     description: "Update an existing subteam/portfolio",
@@ -62,8 +69,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(subteam, null, 2);
     },
   });
+  }
 
   // Delete subteam
+  if (!disabledTools.includes("niftypm_delete_subteam")) {
   server.addTool({
     name: "niftypm_delete_subteam",
     description: "Delete a subteam/portfolio",
@@ -75,8 +84,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Add subteam members
+  if (!disabledTools.includes("niftypm_add_subteam_members")) {
   server.addTool({
     name: "niftypm_add_subteam_members",
     description: "Add members to a subteam/portfolio",
@@ -89,8 +100,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Remove subteam members
+  if (!disabledTools.includes("niftypm_remove_subteam_members")) {
   server.addTool({
     name: "niftypm_remove_subteam_members",
     description: "Remove members from a subteam/portfolio",
@@ -103,8 +116,10 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Leave subteam
+  if (!disabledTools.includes("niftypm_leave_subteam")) {
   server.addTool({
     name: "niftypm_leave_subteam",
     description: "Leave a subteam/portfolio",
@@ -116,4 +131,5 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

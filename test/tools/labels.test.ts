@@ -11,7 +11,7 @@ describe("registerLabelsTools", () => {
   const server = createMockServer();
   const client = createMockClient();
 
-  registerLabelsTools(server as any, client as any);
+  registerLabelsTools(server as any, client as any, []);
 
   it("should register 5 label tools", () => {
     expect(server.addTool).toHaveBeenCalledTimes(5);

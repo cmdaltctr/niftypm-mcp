@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerFieldsTools(server: any, client: NiftyPMClient) {
+export function registerFieldsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List custom fields
+  if (!disabledTools.includes("niftypm_list_custom_fields")) {
   server.addTool({
     name: "niftypm_list_custom_fields",
     description: "List all custom fields definitions",
@@ -19,8 +20,10 @@ export function registerFieldsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(fields, null, 2);
     },
   });
+  }
 
   // Get custom field
+  if (!disabledTools.includes("niftypm_get_custom_field")) {
   server.addTool({
     name: "niftypm_get_custom_field",
     description: "Get a specific custom field definition by ID",
@@ -32,4 +35,5 @@ export function registerFieldsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(field, null, 2);
     },
   });
+  }
 }

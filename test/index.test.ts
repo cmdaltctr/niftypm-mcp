@@ -61,6 +61,7 @@ describe("Server creation integration", () => {
         users: true,
         auth: true,
       },
+      disabledTools: [],
     };
 
     new FastMCP({ name: "niftypm-mcp", version: "0.1.0" });
@@ -112,18 +113,19 @@ describe("Server creation integration", () => {
         users: true,
         auth: true,
       },
+      disabledTools: [],
     };
 
     const client = new NiftyPMClient(config);
 
-    registerFilesTools(mockServer as any, client);
-    registerLabelsTools(mockServer as any, client);
-    registerDocumentsTools(mockServer as any, client);
-    registerMilestonesTools(mockServer as any, client);
-    registerMessagesTools(mockServer as any, client);
-    registerTaskGroupsTools(mockServer as any, client);
-    registerTasksTools(mockServer as any, client);
-    registerSubTeamsTools(mockServer as any, client);
+    registerFilesTools(mockServer as any, client, []);
+    registerLabelsTools(mockServer as any, client, []);
+    registerDocumentsTools(mockServer as any, client, []);
+    registerMilestonesTools(mockServer as any, client, []);
+    registerMessagesTools(mockServer as any, client, []);
+    registerTaskGroupsTools(mockServer as any, client, []);
+    registerTasksTools(mockServer as any, client, []);
+    registerSubTeamsTools(mockServer as any, client, []);
 
     // 8 files + 5 labels + 13 docs + 9 milestones + 7 messages + 8 taskgroups + 23 tasks + 8 subteams = 81
     // We only test the original ones here in this specific test
@@ -165,13 +167,14 @@ describe("Server creation integration", () => {
         users: false,
         auth: false,
       },
+      disabledTools: [],
     };
 
     const client = new NiftyPMClient(config);
 
     // Only register tasks (simulating the conditional in index.ts)
-    if (config.enabledTools.tasks) registerTasksTools(mockServer as any, client);
-    if (config.enabledTools.files) registerFilesTools(mockServer as any, client);
+    if (config.enabledTools.tasks) registerTasksTools(mockServer as any, client, []);
+    if (config.enabledTools.files) registerFilesTools(mockServer as any, client, []);
 
     // Only tasks tools should be registered (23 tasks)
     expect(mockServer.addTool).toHaveBeenCalledTimes(23);

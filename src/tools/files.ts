@@ -15,8 +15,9 @@ const base64ToBlob = (content: string, mimeType: string) => {
   return new Blob([bytes], { type: mimeType });
 };
 
-export function registerFilesTools(server: any, client: NiftyPMClient) {
+export function registerFilesTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // Upload files
+  if (!disabledTools.includes("niftypm_upload_files")) {
   server.addTool({
     name: "niftypm_upload_files",
     description: "Upload one or more files",
@@ -49,8 +50,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // List files
+  if (!disabledTools.includes("niftypm_list_files")) {
   server.addTool({
     name: "niftypm_list_files",
     description: "List files in a project or task",
@@ -65,8 +68,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(files, null, 2);
     },
   });
+  }
 
   // Get file by ID
+  if (!disabledTools.includes("niftypm_get_file")) {
   server.addTool({
     name: "niftypm_get_file",
     description: "Get a specific file by ID",
@@ -78,8 +83,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(file, null, 2);
     },
   });
+  }
 
   // Delete file
+  if (!disabledTools.includes("niftypm_delete_file")) {
   server.addTool({
     name: "niftypm_delete_file",
     description: "Delete a file",
@@ -91,8 +98,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Update file
+  if (!disabledTools.includes("niftypm_update_file")) {
   server.addTool({
     name: "niftypm_update_file",
     description: "Update file metadata",
@@ -107,8 +116,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Copy file
+  if (!disabledTools.includes("niftypm_copy_file")) {
   server.addTool({
     name: "niftypm_copy_file",
     description: "Copy a file to another location",
@@ -121,8 +132,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Add file labels
+  if (!disabledTools.includes("niftypm_add_file_labels")) {
   server.addTool({
     name: "niftypm_add_file_labels",
     description: "Add labels to a file",
@@ -135,8 +148,10 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Remove file labels
+  if (!disabledTools.includes("niftypm_remove_file_labels")) {
   server.addTool({
     name: "niftypm_remove_file_labels",
     description: "Remove labels from a file",
@@ -149,4 +164,5 @@ export function registerFilesTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }

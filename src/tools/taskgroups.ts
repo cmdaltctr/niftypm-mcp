@@ -6,8 +6,9 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
-export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
+export function registerTaskGroupsTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List task groups
+  if (!disabledTools.includes("niftypm_list_taskgroups")) {
   server.addTool({
     name: "niftypm_list_taskgroups",
     description: "List all task groups",
@@ -19,8 +20,10 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(groups, null, 2);
     },
   });
+  }
 
   // Get task group by ID
+  if (!disabledTools.includes("niftypm_get_taskgroup")) {
   server.addTool({
     name: "niftypm_get_taskgroup",
     description: "Get a specific task group by ID",
@@ -32,8 +35,10 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(group, null, 2);
     },
   });
+  }
 
   // Create task group
+  if (!disabledTools.includes("niftypm_create_taskgroup")) {
   server.addTool({
     name: "niftypm_create_taskgroup",
     description: "Create a new task group",
@@ -46,8 +51,10 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(group, null, 2);
     },
   });
+  }
 
   // Update task group
+  if (!disabledTools.includes("niftypm_update_taskgroup")) {
   server.addTool({
     name: "niftypm_update_taskgroup",
     description: "Update an existing task group",
@@ -60,8 +67,10 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(group, null, 2);
     },
   });
+  }
 
   // Delete task group
+  if (!disabledTools.includes("niftypm_delete_taskgroup")) {
   server.addTool({
     name: "niftypm_delete_taskgroup",
     description: "Delete a task group",
@@ -73,10 +82,12 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // ── Task group task management ──────────────────────────────────────
 
   // Move taskgroup tasks
+  if (!disabledTools.includes("niftypm_move_taskgroup_tasks")) {
   server.addTool({
     name: "niftypm_move_taskgroup_tasks",
     description: "Move all tasks from one task group to another",
@@ -89,10 +100,12 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // ── Task group member assignment ────────────────────────────────────
 
   // Assign taskgroup members
+  if (!disabledTools.includes("niftypm_assign_taskgroup_members")) {
   server.addTool({
     name: "niftypm_assign_taskgroup_members",
     description: "Set the assignees for all tasks in a task group",
@@ -105,8 +118,10 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 
   // Unassign taskgroup members
+  if (!disabledTools.includes("niftypm_unassign_taskgroup_members")) {
   server.addTool({
     name: "niftypm_unassign_taskgroup_members",
     description: "Remove members from all tasks in a task group",
@@ -119,4 +134,5 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient) {
       return JSON.stringify(result, null, 2);
     },
   });
+  }
 }
