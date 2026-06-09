@@ -29,7 +29,7 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_get_subteam",
     description: "Get a specific subteam/portfolio by ID",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
     }),
     execute: async ({ subteam_id }: any) => {
       const subteam = await client.get(`/api/v1.0/subteams/${subteam_id}`);
@@ -60,7 +60,7 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_update_subteam",
     description: "Update an existing subteam/portfolio",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
       name: z.string().optional().describe("Subteam name"),
       description: z.string().optional().describe("Subteam description"),
     }),
@@ -77,7 +77,7 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_delete_subteam",
     description: "Delete a subteam/portfolio",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
     }),
     execute: async ({ subteam_id }: any) => {
       const result = await client.delete(`/api/v1.0/subteams/${subteam_id}`);
@@ -92,8 +92,8 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_add_subteam_members",
     description: "Add members to a subteam/portfolio",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
-      members_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of member IDs to add"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
+      members_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).min(1).describe("Array of member IDs to add"),
     }),
     execute: async ({ subteam_id, members_ids }: any) => {
       const result = await client.put(`/api/v1.0/subteams/${subteam_id}/members`, { members_ids });
@@ -108,8 +108,8 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_remove_subteam_members",
     description: "Remove members from a subteam/portfolio",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
-      members_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of member IDs to remove"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
+      members_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).min(1).describe("Array of member IDs to remove"),
     }),
     execute: async ({ subteam_id, members_ids }: any) => {
       const result = await client.delete(`/api/v1.0/subteams/${subteam_id}/members`, { body: { members_ids } });
@@ -124,7 +124,7 @@ export function registerSubTeamsTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_leave_subteam",
     description: "Leave a subteam/portfolio",
     parameters: z.object({
-      subteam_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Subteam ID"),
+      subteam_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Subteam ID"),
     }),
     execute: async ({ subteam_id }: any) => {
       const result = await client.post(`/api/v1.0/subteams/${subteam_id}/leave`);

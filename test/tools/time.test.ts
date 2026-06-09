@@ -48,9 +48,11 @@ describe("registerTimeTools", () => {
     const tool = server.getTool("niftypm_get_time_duration")!;
 
     it("should call GET /api/v1.0/time/duration with params", async () => {
-      await tool.execute({ project_id: "proj-1", task_id: "task-1" });
+      await tool.execute({ start: "2026-01-01", end: "2026-01-31", project_id: "proj-1", task_id: "task-1" });
 
       expect(client.get).toHaveBeenCalledWith("/api/v1.0/time/duration", {
+        start: "2026-01-01",
+        end: "2026-01-31",
         project_id: "proj-1",
         task_id: "task-1",
       });

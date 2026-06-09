@@ -61,7 +61,7 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_list_webhooks",
     description: "List all webhooks for an app",
     parameters: z.object({
-      app_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("App ID"),
+      app_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("App ID"),
     }),
     execute: async ({ app_id }: any) => {
       const webhooks = await client.get(`/api/v1.0/webhooks/${app_id}`);
@@ -78,7 +78,7 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient, disabl
     parameters: z.object({
       url: WebhookUrlSchema.describe("Webhook callback URL"),
       event: z.string().describe("Event type to subscribe to"),
-      app_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("App ID"),
+      app_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("App ID"),
       secret: z.string().optional().describe("Webhook secret for signature verification"),
     }),
     execute: async (params: any) => {
@@ -94,7 +94,7 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_update_webhook",
     description: "Update an existing webhook",
     parameters: z.object({
-      webhook_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Webhook ID"),
+      webhook_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Webhook ID"),
       url: WebhookUrlSchema.optional().describe("Webhook callback URL"),
       event: z.string().optional().describe("Event type"),
       active: z.boolean().optional().describe("Whether the webhook is active"),
@@ -112,7 +112,7 @@ export function registerWebhooksTools(server: any, client: NiftyPMClient, disabl
     name: "niftypm_delete_webhook",
     description: "Delete a webhook",
     parameters: z.object({
-      webhook_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Webhook ID"),
+      webhook_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Webhook ID"),
     }),
     execute: async ({ webhook_id }: any) => {
       const result = await client.delete(`/api/v1.0/webhooks/${webhook_id}`);

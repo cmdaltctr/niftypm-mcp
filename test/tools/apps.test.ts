@@ -29,10 +29,16 @@ describe("registerAppsTools", () => {
   describe("niftypm_list_apps", () => {
     const tool = server.getTool("niftypm_list_apps")!;
 
-    it("should call GET /api/v1.0/apps", async () => {
-      await tool.execute({});
+    it("should call GET /api/v1.0/apps with required limit/offset defaults", async () => {
+      // NiftyPM requires limit + offset query params; Zod applies the
+      // defaults at runtime, so parse through the schema first (as FastMCP does).
+      const parsed = tool.parameters.parse({});
+      await tool.execute(parsed);
 
-      expect(client.get).toHaveBeenCalledWith("/api/v1.0/apps");
+      expect(client.get).toHaveBeenCalledWith("/api/v1.0/apps", {
+        limit: 25,
+        offset: 0,
+      });
     });
   });
 

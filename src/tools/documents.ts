@@ -13,7 +13,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_list_documents",
     description: "List documents in a project",
     parameters: z.object({
-      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
       limit: z.number().optional().describe("Number of results to return"),
       offset: z.number().optional().describe("Pagination offset"),
     }),
@@ -30,7 +30,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_get_document",
     description: "Get a specific document by ID",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
     }),
     execute: async ({ document_id }: any) => {
       const document = await client.get(`/api/v1.0/docs/${document_id}`);
@@ -47,7 +47,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     parameters: z.object({
       title: z.string().describe("Document title"),
       content: z.string().optional().describe("Document content"),
-      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Project ID"),
     }),
     execute: async (params: any) => {
       const document = await client.post("/api/v1.0/docs", params);
@@ -62,7 +62,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_update_document",
     description: "Update an existing document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
       title: z.string().optional().describe("Document title"),
       content: z.string().optional().describe("Document content"),
     }),
@@ -79,7 +79,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_delete_document",
     description: "Delete a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
     }),
     execute: async ({ document_id }: any) => {
       const result = await client.delete(`/api/v1.0/docs/${document_id}`);
@@ -94,8 +94,8 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_move_document",
     description: "Move a document to another project",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
-      destination_project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Destination project ID"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      destination_project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Destination project ID"),
     }),
     execute: async ({ document_id, ...params }: any) => {
       const result = await client.post(`/api/v1.0/docs/${document_id}/move_to_project`, params);
@@ -146,8 +146,8 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_add_document_members",
     description: "Add members to a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
-      member_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Member IDs to add"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      member_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).describe("Array of Member IDs to add"),
     }),
     execute: async ({ document_id, ...params }: any) => {
       const result = await client.put(`/api/v1.0/docs/${document_id}/members`, params);
@@ -162,8 +162,8 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_remove_document_members",
     description: "Remove members from a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
-      member_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Member IDs to remove"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      member_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).describe("Array of Member IDs to remove"),
     }),
     execute: async ({ document_id, ...params }: any) => {
       const result = await client.delete(`/api/v1.0/docs/${document_id}/members`, { body: params });
@@ -180,7 +180,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_change_document",
     description: "Create a new version of a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
       content: z.string().describe("New document content"),
       message: z.string().optional().describe("Version change message"),
     }),
@@ -199,11 +199,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_add_document_labels",
     description: "Add labels to a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
-      label_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Label IDs to add"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      label_ids: z.array(z.string()).describe("Array of Label IDs to add"),
     }),
-    execute: async ({ document_id, ...params }: any) => {
-      const result = await client.put(`/api/v1.0/docs/${document_id}/labels`, params);
+    execute: async ({ document_id, label_ids }: any) => {
+      // NiftyPM UpdateLabels schema expects { labels: [...] }, not label_ids.
+      const result = await client.put(`/api/v1.0/docs/${document_id}/labels`, { labels: label_ids });
       return JSON.stringify(result, null, 2);
     },
   });
@@ -215,11 +216,12 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_remove_document_labels",
     description: "Remove labels from a document",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID"),
-      label_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Label IDs to remove"),
+      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      label_ids: z.array(z.string()).describe("Array of Label IDs to remove"),
     }),
-    execute: async ({ document_id, ...params }: any) => {
-      const result = await client.delete(`/api/v1.0/docs/${document_id}/labels`, { body: params });
+    execute: async ({ document_id, label_ids }: any) => {
+      // NiftyPM UpdateLabels schema expects { labels: [...] }, not label_ids.
+      const result = await client.delete(`/api/v1.0/docs/${document_id}/labels`, { body: { labels: label_ids } });
       return JSON.stringify(result, null, 2);
     },
   });

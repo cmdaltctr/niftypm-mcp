@@ -13,7 +13,7 @@ export function registerMembersTools(server: any, client: NiftyPMClient, disable
     name: "niftypm_list_members",
     description: "List all team members",
     parameters: z.object({
-      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
     }),
     execute: async (params: any) => {
       const members = await client.get("/api/v1.0/members", params);
@@ -28,7 +28,7 @@ export function registerMembersTools(server: any, client: NiftyPMClient, disable
     name: "niftypm_get_member",
     description: "Get a specific team member by ID",
     parameters: z.object({
-      member_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Member ID"),
+      member_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Member ID"),
     }),
     execute: async ({ member_id }: any) => {
       const member = await client.get(`/api/v1.0/members/${member_id}`);

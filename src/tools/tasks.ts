@@ -10,10 +10,10 @@ import type { NiftyPMClient } from "../client.js";
 export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disabledTools: string[] = []) {
   // List tasks
   const ListTasksSchema = z.object({
-    project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by project ID"),
-    task_group_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by task group/list ID"),
-    member_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by assigned member ID"),
-    milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by milestone ID"),
+    project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
+    task_group_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by task group/list ID"),
+    member_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by assigned member ID"),
+    milestone_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by milestone ID"),
     completed: z.boolean().optional().describe("Filter by completion status"),
     archived: z.boolean().optional().describe("Filter by archived status"),
     limit: z.number().min(1).max(100).optional().describe("Number of results to return"),
@@ -34,7 +34,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Get task by ID
   const GetTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
   });
 
   if (!disabledTools.includes("niftypm_get_task")) {
@@ -52,15 +52,15 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
   // Create task
   const CreateTaskSchema = z.object({
     name: z.string().describe("Task name"),
-    task_group_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task group/list ID (required)"),
+    task_group_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task group/list ID (required)"),
     description: z.string().optional().describe("Task description"),
-    assignees: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).optional().describe("Array of member IDs to assign"),
+    assignees: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).optional().describe("Array of member IDs to assign"),
     due_date: z.string().optional().describe("Due date (ISO 8601 format)"),
     start_date: z.string().optional().describe("Start date (ISO 8601 format)"),
-    milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Milestone ID"),
-    labels: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).optional().describe("Array of label IDs"),
+    milestone_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Milestone ID"),
+    labels: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).optional().describe("Array of label IDs"),
     story_points: z.number().optional().describe("Story points"),
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Parent task ID if creating a subtask"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Parent task ID if creating a subtask"),
   });
 
   if (!disabledTools.includes("niftypm_create_task")) {
@@ -77,7 +77,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Update task
   const UpdateTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
     name: z.string().optional().describe("Task name"),
     description: z.string().optional().describe("Task description"),
     due_date: z.string().optional().describe("Due date (ISO 8601 format)"),
@@ -98,7 +98,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Delete task
   const DeleteTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
   });
 
   if (!disabledTools.includes("niftypm_delete_task")) {
@@ -115,8 +115,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Delete multiple tasks
   const DeleteTasksSchema = z.object({
-    task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).min(1).describe("Array of task IDs to delete"),
-    project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Project ID"),
+    task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).min(1).describe("Array of task IDs to delete"),
+    project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Project ID"),
   });
 
   if (!disabledTools.includes("niftypm_delete_tasks")) {
@@ -133,7 +133,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Complete task
   const CompleteTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
   });
 
   if (!disabledTools.includes("niftypm_complete_task")) {
@@ -150,7 +150,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Archive task
   const ArchiveTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
   });
 
   if (!disabledTools.includes("niftypm_archive_task")) {
@@ -169,8 +169,9 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Get personal tasks
   const GetPersonalTasksSchema = z.object({
-    page: z.number().optional().describe("Page number"),
-    per_page: z.number().optional().describe("Items per page"),
+    limit: z.number().min(1).max(100).optional().default(25).describe("Number of results to return (default 25)"),
+    offset: z.number().min(0).optional().default(0).describe("Pagination offset (default 0)"),
+    completed: z.boolean().optional().describe("Filter by completion status"),
   });
 
   if (!disabledTools.includes("niftypm_get_personal_tasks")) {
@@ -179,6 +180,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     description: "List personal tasks assigned to the current user",
     parameters: GetPersonalTasksSchema,
     execute: async (params: z.infer<typeof GetPersonalTasksSchema>) => {
+      // NiftyPM requires the `limit` query param on GET /tasks/personal.
       const tasks = await client.get("/api/v1.0/tasks/personal", params);
       return JSON.stringify(tasks, null, 2);
     },
@@ -208,9 +210,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Link task
   const LinkTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    linked_task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("ID of the task to link to"),
-    link_type: z.string().optional().describe("Type of link (e.g., 'blocks', 'related')"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    linked_task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("ID of the task to link to"),
   });
 
   if (!disabledTools.includes("niftypm_link_task")) {
@@ -218,8 +219,9 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     name: "niftypm_link_task",
     description: "Link a task to another task",
     parameters: LinkTaskSchema,
-    execute: async ({ task_id, ...params }: z.infer<typeof LinkTaskSchema>) => {
-      const result = await client.post(`/api/v1.0/tasks/${task_id}/link_task`, params);
+    execute: async ({ task_id, linked_task_id }: z.infer<typeof LinkTaskSchema>) => {
+      // NiftyPM expects { tasks: [...] } (LinkTaskBody schema), not linked_task_id.
+      const result = await client.post(`/api/v1.0/tasks/${task_id}/link_task`, { tasks: [linked_task_id] });
       return JSON.stringify(result, null, 2);
     },
   });
@@ -227,8 +229,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Update task milestone
   const UpdateTaskMilestoneSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    milestone_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Milestone ID (omit to remove)"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    milestone_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Milestone ID (omit to remove)"),
   });
 
   if (!disabledTools.includes("niftypm_update_task_milestone")) {
@@ -247,8 +249,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Move single task
   const MoveTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Target Task Group ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Target Task Group ID"),
     position: z.number().optional().describe("Position in the target group (0-based)"),
   });
 
@@ -266,8 +268,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Move multiple tasks
   const MoveTasksSchema = z.object({
-    task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Task IDs to move"),
-    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Target Task Group ID"),
+    task_ids: z.array(z.string().regex(/^[a-zA-Z0-9_!-]+$/)).describe("Array of Task IDs to move"),
+    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Target Task Group ID"),
     position: z.number().optional().describe("Position in the target group (0-based)"),
   });
 
@@ -287,8 +289,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Assign task
   const AssignTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    member_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Member ID to assign"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    member_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Member ID to assign"),
   });
 
   if (!disabledTools.includes("niftypm_assign_task")) {
@@ -305,8 +307,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Unassign task
   const UnassignTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    member_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Member ID to unassign"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    member_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Member ID to unassign"),
   });
 
   if (!disabledTools.includes("niftypm_unassign_task")) {
@@ -325,8 +327,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Add task labels
   const AddTaskLabelsSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    label_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Label IDs to add"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    label_ids: z.array(z.string()).describe("Array of Label IDs to add"),
   });
 
   if (!disabledTools.includes("niftypm_add_task_labels")) {
@@ -334,8 +336,9 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     name: "niftypm_add_task_labels",
     description: "Add labels to a task",
     parameters: AddTaskLabelsSchema,
-    execute: async ({ task_id, ...params }: z.infer<typeof AddTaskLabelsSchema>) => {
-      const result = await client.put(`/api/v1.0/tasks/${task_id}/labels`, params);
+    execute: async ({ task_id, label_ids }: z.infer<typeof AddTaskLabelsSchema>) => {
+      // NiftyPM UpdateLabels schema expects { labels: [...] }, not label_ids.
+      const result = await client.put(`/api/v1.0/tasks/${task_id}/labels`, { labels: label_ids });
       return JSON.stringify(result, null, 2);
     },
   });
@@ -343,8 +346,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Remove task labels
   const RemoveTaskLabelsSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    label_ids: z.array(z.string().regex(/^[a-zA-Z0-9_-]+$/)).describe("Array of Label IDs to remove"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    label_ids: z.array(z.string()).describe("Array of Label IDs to remove"),
   });
 
   if (!disabledTools.includes("niftypm_remove_task_labels")) {
@@ -352,8 +355,9 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     name: "niftypm_remove_task_labels",
     description: "Remove labels from a task",
     parameters: RemoveTaskLabelsSchema,
-    execute: async ({ task_id, ...params }: z.infer<typeof RemoveTaskLabelsSchema>) => {
-      const result = await client.delete(`/api/v1.0/tasks/${task_id}/labels`, { body: params });
+    execute: async ({ task_id, label_ids }: z.infer<typeof RemoveTaskLabelsSchema>) => {
+      // NiftyPM UpdateLabels schema expects { labels: [...] }, not label_ids.
+      const result = await client.delete(`/api/v1.0/tasks/${task_id}/labels`, { body: { labels: label_ids } });
       return JSON.stringify(result, null, 2);
     },
   });
@@ -363,8 +367,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Add task field
   const AddTaskFieldSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    field_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Field ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    field_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Field ID"),
     value: z.any().describe("Field value"),
   });
 
@@ -382,7 +386,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Get task fields
   const GetTaskFieldsSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
   });
 
   if (!disabledTools.includes("niftypm_get_task_fields")) {
@@ -399,8 +403,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Update task field
   const UpdateTaskFieldSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    field_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Field ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    field_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Field ID"),
     value: z.any().describe("New field value"),
   });
 
@@ -420,8 +424,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Attach task document
   const AttachTaskDocumentSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID"),
-    document_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Document ID to attach"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID"),
+    document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID to attach"),
   });
 
   if (!disabledTools.includes("niftypm_attach_task_document")) {
@@ -438,8 +442,8 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
 
   // Clone task
   const CloneTaskSchema = z.object({
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Task ID to clone"),
-    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Target Task Group ID (defaults to current)"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Task ID to clone"),
+    target_task_group_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Target Task Group ID (defaults to current)"),
     name: z.string().optional().describe("New name for the cloned task"),
   });
 

@@ -10,10 +10,10 @@ import type { NiftyPMClient } from "../client.js";
 export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, disabledTools: string[] = []) {
   // List messages
   const ListMessagesSchema = z.object({
-    chat_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by chat ID"),
-    task_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by task ID"),
-    file_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by file ID"),
-    doc_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by document ID"),
+    chat_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by chat ID"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by task ID"),
+    file_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by file ID"),
+    doc_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by document ID"),
     limit: z.number().min(1).max(100).optional().describe("Number of results to return"),
     offset: z.number().optional().describe("Pagination offset"),
   });
@@ -32,7 +32,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
 
   // Get message by ID
   const GetMessageSchema = z.object({
-    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+    message_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Message ID"),
   });
 
   if (!disabledTools.includes("niftypm_get_message")) {
@@ -50,7 +50,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
   // Create message
   const CreateMessageSchema = z.object({
     text: z.string().describe("Message text content"),
-    chat_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Chat ID"),
+    chat_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Chat ID"),
     type: z.enum(["text", "gif", "document"]).optional().default("text").describe("Message type"),
   });
 
@@ -68,7 +68,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
 
   // Update message
   const UpdateMessageSchema = z.object({
-    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+    message_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Message ID"),
     text: z.string().describe("Message text content"),
   });
 
@@ -85,7 +85,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
   }
   // Delete message
   const DeleteMessageSchema = z.object({
-    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+    message_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Message ID"),
   });
 
   if (!disabledTools.includes("niftypm_delete_message")) {
@@ -102,7 +102,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
 
   // Mark message as seen
   const MarkMessageSeenSchema = z.object({
-    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+    message_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Message ID"),
   });
 
   if (!disabledTools.includes("niftypm_mark_message_seen")) {
@@ -119,7 +119,7 @@ export function registerMessagesTools(server: FastMCP, client: NiftyPMClient, di
 
   // Mark message as heard
   const MarkMessageHeardSchema = z.object({
-    message_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Message ID"),
+    message_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Message ID"),
   });
 
   if (!disabledTools.includes("niftypm_mark_message_heard")) {

@@ -28,10 +28,17 @@ describe("registerTemplatesTools", () => {
   describe("niftypm_list_templates", () => {
     const tool = server.getTool("niftypm_list_templates")!;
 
-    it("should call GET /api/v1.0/templates", async () => {
-      await tool.execute({});
+    it("should call GET /api/v1.0/templates with required type + pagination defaults", async () => {
+      // NiftyPM requires the `type` query param; limit/offset have Zod defaults.
+      // Parse through the schema first (as FastMCP does at runtime).
+      const parsed = tool.parameters.parse({ type: 0 });
+      await tool.execute(parsed);
 
-      expect(client.get).toHaveBeenCalledWith("/api/v1.0/templates");
+      expect(client.get).toHaveBeenCalledWith("/api/v1.0/templates", {
+        type: 0,
+        limit: 25,
+        offset: 0,
+      });
     });
   });
 });

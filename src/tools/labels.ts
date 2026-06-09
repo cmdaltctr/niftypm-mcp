@@ -13,9 +13,14 @@ export function registerLabelsTools(server: any, client: NiftyPMClient, disabled
     name: "niftypm_list_labels",
     description: "List all labels/tags",
     parameters: z.object({
-      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Filter by project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
+      limit: z.number().min(1).max(100).optional().default(25).describe("Number of results to return (1-100, default 25)"),
+      offset: z.number().min(0).optional().default(0).describe("Pagination offset (default 0)"),
+      // Spec types `type` as a free integer; 0/1 are the known label-type values.
+      type: z.union([z.literal(0), z.literal(1)]).optional().describe("Label type filter (0 or 1)"),
     }),
     execute: async (params: any) => {
+      // NiftyPM requires limit and offset query params on GET /labels.
       const labels = await client.get("/api/v1.0/labels", params);
       return JSON.stringify(labels, null, 2);
     },
@@ -28,7 +33,7 @@ export function registerLabelsTools(server: any, client: NiftyPMClient, disabled
     name: "niftypm_get_label",
     description: "Get a specific label by ID",
     parameters: z.object({
-      label_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Label ID"),
+      label_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Label ID"),
     }),
     execute: async ({ label_id }: any) => {
       const label = await client.get(`/api/v1.0/labels/${label_id}`);
@@ -45,7 +50,7 @@ export function registerLabelsTools(server: any, client: NiftyPMClient, disabled
     parameters: z.object({
       name: z.string().describe("Label name"),
       color: z.string().optional().describe("Label color (hex format)"),
-      project_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional().describe("Project ID to associate with"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Project ID to associate with"),
     }),
     execute: async (params: any) => {
       const label = await client.post("/api/v1.0/labels", params);
@@ -60,7 +65,7 @@ export function registerLabelsTools(server: any, client: NiftyPMClient, disabled
     name: "niftypm_update_label",
     description: "Update an existing label",
     parameters: z.object({
-      label_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Label ID"),
+      label_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Label ID"),
       name: z.string().optional().describe("Label name"),
       color: z.string().optional().describe("Label color (hex format)"),
     }),
@@ -77,7 +82,7 @@ export function registerLabelsTools(server: any, client: NiftyPMClient, disabled
     name: "niftypm_delete_label",
     description: "Delete a label",
     parameters: z.object({
-      label_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).describe("Label ID"),
+      label_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Label ID"),
     }),
     execute: async ({ label_id }: any) => {
       const result = await client.delete(`/api/v1.0/labels/${label_id}`);
