@@ -1,3 +1,11 @@
+# [1.2.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.1.0...v1.2.0) (2026-06-09)
+
+
+### Features
+
+* **config:** auto-load .env file from project root ([c8f8005](https://github.com/cmdaltctr/niftypm-mcp/commit/c8f8005fd351e871a8542874046bf1cdd24923c1))
+* **tools:** support disabling individual tools via DISABLED_TOOLS env var ([e004732](https://github.com/cmdaltctr/niftypm-mcp/commit/e004732b521834a795a15a704aec88e985b3b432))
+
 # [1.1.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.0.0...v1.1.0) (2026-06-09)
 
 
