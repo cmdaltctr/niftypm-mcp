@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.1...v1.2.2) (2026-06-09)
+
+
+### Bug Fixes
+
+* **tools:** expose dependency and roadmap fields on update_task ([8155d18](https://github.com/cmdaltctr/niftypm-mcp/commit/8155d183d5e1b6ee5ecddcf213e4377f0a713ffb))
+
 ## [1.2.1](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.0...v1.2.1) (2026-06-09)
 
 
