@@ -9,6 +9,7 @@ openspec/
 .opencode/
 docs/api/
 docs/security/
+docs/test_data/
 __pycache__/
 .venv/
 *.log
