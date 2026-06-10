@@ -13,9 +13,11 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient, disa
     name: "niftypm_list_milestones",
     description: "List milestones in a project",
     parameters: z.object({
-      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Filter by project ID"),
       limit: z.number().optional().describe("Number of results to return"),
       offset: z.number().optional().describe("Pagination offset"),
+      sort: z.enum(["ascending", "descending"]).optional().describe("Sort order, default is descending"),
+      is_list: z.string().optional().describe("List Flag (pass 'true' to discover list-type milestones)"),
     }),
     execute: async (params: any) => {
       const milestones = await client.get("/api/v1.0/milestones", params);
