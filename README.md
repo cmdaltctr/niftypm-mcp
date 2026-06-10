@@ -148,6 +148,30 @@ The most effective way to populate complex projects is using a **JSON-first plan
 
 For details on executing this four-phase pipeline, see the [Workflow Guide](docs/guides/workflow.md).
 
+## AI Agent Skills
+
+The `SKILLS/` folder contains drop-in agent skill instructions that teach AI coding assistants (Claude Code, OpenCode, Cursor, etc.) how to use this MCP server effectively — including the JSON-first project planning workflow, the four-phase execution pipeline, and NiftyPM best practices.
+
+Copy the `SKILLS/s-niftypm/` folder to the appropriate location for your AI client:
+
+| AI Client | Destination path |
+|-----------|------------------|
+| **Claude Code** | `~/.claude/skills/s-niftypm/` |
+| **OpenCode** | `~/.config/opencode/skills/s-niftypm/` |
+| **Cursor** | `~/.cursor/rules/` (then wrap `SKILL.md` in a `.mdc` rule) |
+| **Other** | Check your client's docs for a skills/rules directory |
+
+Example (Claude Code / OpenCode):
+
+```bash
+# From inside the cloned repo
+cp -r SKILLS/s-niftypm ~/.claude/skills/
+# or for OpenCode
+cp -r SKILLS/s-niftypm ~/.config/opencode/skills/
+```
+
+Once installed, your AI agent will automatically load the `s-niftypm` skill when working with NiftyPM MCP tools and follow the JSON-first planning workflow by default.
+
 ## Example tool calls
 
 Create a task:
