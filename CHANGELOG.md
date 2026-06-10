@@ -1,3 +1,11 @@
+## [1.2.3](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.2...v1.2.3) (2026-06-10)
+
+
+### Bug Fixes
+
+* **mcp-niftypm:** align tool implementations with API spec ([5331112](https://github.com/cmdaltctr/niftypm-mcp/commit/533111241289e7d8954f45cace105a73d964029d))
+* **milestones:** make project_id required and add is_list query param ([bbceed3](https://github.com/cmdaltctr/niftypm-mcp/commit/bbceed3a3c3810d555a6e4e3f39d0a70ca97655a))
+
 ## [1.2.2](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.1...v1.2.2) (2026-06-09)
 
 
