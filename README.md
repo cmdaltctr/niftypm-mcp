@@ -141,6 +141,7 @@ The server groups tools by NiftyPM resource domain:
 - Apps, templates, invite links, current user, auth helpers
 
 For detailed tool names and examples, see [Tool Guide](docs/guides/tools.md).
+## Project Planning WorkflownnThe most effective way to populate complex projects is using a **JSON-first planning workflow**. Instead of making ad-hoc tool calls, define your project structure (milestones, labels, tasks, dependencies) in a JSON file first. This serves as the source of truth, allowing you to validate relationships and ensure tasks have required fields (like story points and real subtasks) before making any API calls to NiftyPM.nnFor details on executing this four-phase pipeline, see the [Workflow Guide](docs/guides/workflow.md).n
 ## Example tool calls
 
 Create a task:
@@ -174,6 +175,7 @@ Create a related subtask by passing the parent task ID as `task_id`:
 - [Tool Guide](docs/guides/tools.md)
 - [API Coverage](docs/guides/api-coverage.md)
 - [Migration Guide](docs/guides/migration.md)
+- [Workflow Guide](docs/guides/workflow.md)
 
 ## Development
 
