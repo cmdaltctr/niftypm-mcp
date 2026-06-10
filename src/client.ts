@@ -130,6 +130,11 @@ export class NiftyPMClient {
         );
       }
 
+      // 204 No Content — no body to parse
+      if (response.status === 204) {
+        return {} as T;
+      }
+
       return response.json() as Promise<T>;
     }
 

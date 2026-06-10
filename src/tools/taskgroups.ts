@@ -13,10 +13,17 @@ export function registerTaskGroupsTools(server: any, client: NiftyPMClient, disa
     name: "niftypm_list_taskgroups",
     description: "List all task groups",
     parameters: z.object({
-      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by project ID"),
+      project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Project ID (required)"),
+      archived: z.boolean().optional().describe("Filter by archived status"),
+      limit: z.number().optional().describe("Number of results to return"),
+      offset: z.number().optional().describe("Pagination offset"),
+      sort: z.enum(["ascending", "descending"]).optional().describe("Sort order (default: ascending)"),
     }),
     execute: async (params: any) => {
-      const groups = await client.get("/api/v1.0/taskgroups", params);
+      // API requires `archived` even though spec marks it optional.
+      // Default to false so callers don't need to pass it every time.
+      const query = { archived: false, ...params };
+      const groups = await client.get("/api/v1.0/taskgroups", query);
       return JSON.stringify(groups, null, 2);
     },
   });

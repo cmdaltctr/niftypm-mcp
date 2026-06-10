@@ -32,9 +32,19 @@ export function registerProjectsTools(server: any, client: NiftyPMClient, disabl
       name: z.string().describe("Project name"),
       description: z.string().optional().describe("Project description"),
       template_id: z.string().optional().describe("Template ID to use"),
+      subteam_id: z.string().optional().describe("Subteam/Portfolio ID to create the project under"),
+      nice_id: z.string().min(2).max(3).optional().describe("Short custom ID (2-3 characters, used in task IDs and URLs)"),
+      access_type: z.number().optional().describe("Access type: 0=public, 1=limited, 2=personal"),
+      demo: z.enum(["true", "false"]).optional().describe("Whether this is a demo project"),
     }),
     execute: async (params: any) => {
-      const project = await client.post("/api/v1.0/projects", params);
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      }
+      const project = await client.formUpload("/api/v1.0/projects", formData);
       return JSON.stringify(project, null, 2);
     },
   });

@@ -45,12 +45,20 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     name: "niftypm_create_document",
     description: "Create a new document",
     parameters: z.object({
-      title: z.string().describe("Document title"),
+      name: z.string().describe("Document name"),
       content: z.string().optional().describe("Document content"),
       project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Project ID"),
     }),
     execute: async (params: any) => {
-      const document = await client.post("/api/v1.0/docs", params);
+      // API expects `name` and `content` fields (content is type object in spec)
+      const body: Record<string, any> = {
+        name: params.name,
+        project_id: params.project_id,
+      };
+      if (params.content !== undefined) {
+        body.content = params.content;
+      }
+      const document = await client.post("/api/v1.0/docs", body);
       return JSON.stringify(document, null, 2);
     },
   });
