@@ -1,6 +1,6 @@
 {
   "name": "niftypm-mcp",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "MCP server for NiftyPM project management tool",
   "type": "module",
   "bin": {

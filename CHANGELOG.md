@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.3...v1.3.0) (2026-06-22)
+
+
+### Features
+
+* **skills:** bundle s-niftypm AI agent skill ([85ea30e](https://github.com/cmdaltctr/niftypm-mcp/commit/85ea30e31fa26bb499956e1e4127a0c11d0c7fc8))
+* **tools:** add checklist tools, expand list_tasks params, fix API drift ([45b032a](https://github.com/cmdaltctr/niftypm-mcp/commit/45b032a393648206c9fbfbe9963fa6618a173353))
+
 ## [1.2.3](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.2...v1.2.3) (2026-06-10)
 
 
