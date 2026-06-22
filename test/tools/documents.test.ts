@@ -54,7 +54,7 @@ describe("registerDocumentsTools", () => {
     const tool = server.getTool("niftypm_create_document")!;
 
     it("should call POST /api/v1.0/docs with body", async () => {
-      const params = { title: "My Doc", content: "Hello", project_id: "proj-1" };
+      const params = { name: "My Doc", content: "Hello", project_id: "proj-1" };
       await tool.execute(params);
 
       expect(client.post).toHaveBeenCalledWith("/api/v1.0/docs", params);
@@ -92,7 +92,7 @@ describe("registerDocumentsTools", () => {
         destination_project_id: "proj-2",
       });
 
-      expect(client.post).toHaveBeenCalledWith(
+      expect(client.put).toHaveBeenCalledWith(
         "/api/v1.0/docs/doc-1/move_to_project",
         { destination_project_id: "proj-2" }
       );

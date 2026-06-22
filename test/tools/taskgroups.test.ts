@@ -34,6 +34,7 @@ describe("registerTaskGroupsTools", () => {
 
       expect(client.get).toHaveBeenCalledWith("/api/v1.0/taskgroups", {
         project_id: "proj-1",
+        archived: false,
       });
     });
   });

@@ -106,7 +106,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
       destination_project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Destination project ID"),
     }),
     execute: async ({ document_id, ...params }: any) => {
-      const result = await client.post(`/api/v1.0/docs/${document_id}/move_to_project`, params);
+      const result = await client.put(`/api/v1.0/docs/${document_id}/move_to_project`, params);
       return JSON.stringify(result, null, 2);
     },
   });

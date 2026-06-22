@@ -55,7 +55,7 @@ describe("registerProjectsTools", () => {
       const params = { name: "New Project", description: "A test project" };
       await tool.execute(params);
 
-      expect(client.post).toHaveBeenCalledWith("/api/v1.0/projects", params);
+      expect(client.formUpload).toHaveBeenCalledWith("/api/v1.0/projects", expect.any(FormData));
     });
   });
 

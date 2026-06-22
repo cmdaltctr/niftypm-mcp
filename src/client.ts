@@ -93,9 +93,10 @@ export class NiftyPMClient {
    */
   async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    baseUrl?: string,
   ): Promise<T> {
-    const url = `${this.config.baseUrl}${endpoint}`;
+    const url = `${baseUrl || this.config.baseUrl}${endpoint}`;
     
     const headers = new Headers(options.headers);
     const hasCustomAuth = headers.has("Authorization");
@@ -235,5 +236,56 @@ export class NiftyPMClient {
       method: "DELETE",
       body: options?.body ? JSON.stringify(options.body) : undefined,
     });
+  }
+
+  // ── Internal API (api.niftypm.com) ─────────────────────────────────
+  // Checklist endpoints live on a different base URL than the public
+  // OpenAPI spec. These methods mirror get/post/put/delete but target
+  // config.internalBaseUrl. Write operations require the teamToken
+  // (from the web app's nifty_auth cookie), not the OAuth access_token.
+  // See docs/api/checklist-api-discovery.md.
+
+  private internalAuthHeaders(): HeadersInit {
+    // Use teamToken if available; fall back to accessToken for reads.
+    const token = this.config.teamToken || this.config.accessToken;
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  async internalGet<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    const url = new URL(`${this.config.internalBaseUrl}${endpoint}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+    return this.request<T>(url.pathname + url.search, {
+      method: "GET",
+      headers: this.internalAuthHeaders(),
+    }, this.config.internalBaseUrl);
+  }
+
+  async internalPost<T>(endpoint: string, body?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: "POST",
+      headers: this.internalAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    }, this.config.internalBaseUrl);
+  }
+
+  async internalPut<T>(endpoint: string, body?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: "PUT",
+      headers: this.internalAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    }, this.config.internalBaseUrl);
+  }
+
+  async internalDelete<T>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: "DELETE",
+      headers: this.internalAuthHeaders(),
+    }, this.config.internalBaseUrl);
   }
 }

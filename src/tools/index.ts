@@ -24,3 +24,4 @@ export { registerInviteTools } from "./invite.js";
 export { registerTemplatesTools } from "./templates.js";
 export { registerUsersTools } from "./users.js";
 export { registerAuthTools } from "./auth.js";
+export { registerChecklistsTools } from "./checklists.js";

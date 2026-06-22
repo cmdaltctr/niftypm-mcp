@@ -38,5 +38,10 @@ export function createMockClient() {
     put: vi.fn().mockResolvedValue({ data: "mock-put-response" }),
     delete: vi.fn().mockResolvedValue({ data: "mock-delete-response" }),
     formUpload: vi.fn().mockResolvedValue({ data: "mock-upload-response" }),
+    // Internal API methods (api.niftypm.com — used by checklist tools)
+    internalGet: vi.fn().mockResolvedValue({ data: "mock-internal-get" }),
+    internalPost: vi.fn().mockResolvedValue({ data: "mock-internal-post" }),
+    internalPut: vi.fn().mockResolvedValue({ data: "mock-internal-put" }),
+    internalDelete: vi.fn().mockResolvedValue({ data: "mock-internal-delete" }),
   };
 }

@@ -18,6 +18,22 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     archived: z.boolean().optional().describe("Filter by archived status"),
     limit: z.number().min(1).max(100).optional().describe("Number of results to return"),
     offset: z.number().optional().describe("Pagination offset"),
+    // ── Additional spec-defined params (added 2026-06-22, F-1) ──────────
+    include_subtasks: z.string().optional().describe("Pass \"true\" to include subtasks in the response"),
+    task_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter to a single task by internal ID"),
+    meeting_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by meeting ID"),
+    completed_by: z.string().regex(/^[a-zA-Z0-9_!-]+$/).optional().describe("Filter by member who completed the task"),
+    include_archived: z.string().optional().describe("Pass \"true\" to include archived tasks"),
+    order: z.string().optional().describe("Result ordering"),
+    sort: z.string().optional().describe("Sort field"),
+    from: z.string().optional().describe("Date range start (ISO 8601)"),
+    to: z.string().optional().describe("Date range end (ISO 8601)"),
+    archived_from: z.string().optional().describe("Archived date range start (ISO 8601)"),
+    archived_to: z.string().optional().describe("Archived date range end (ISO 8601)"),
+    completed_from: z.string().optional().describe("Completed date range start (ISO 8601)"),
+    completed_to: z.string().optional().describe("Completed date range end (ISO 8601)"),
+    project_ids: z.string().optional().describe("Comma-separated project IDs for multi-project filter"),
+    assignee_ids: z.array(z.string()).optional().describe("Array of member IDs for multi-assignee filter"),
   });
 
   if (!disabledTools.includes("niftypm_list_tasks")) {
@@ -441,7 +457,7 @@ export function registerTasksTools(server: FastMCP, client: NiftyPMClient, disab
     description: "Attach a document to a task",
     parameters: AttachTaskDocumentSchema,
     execute: async ({ task_id, ...params }: z.infer<typeof AttachTaskDocumentSchema>) => {
-      const result = await client.post(`/api/v1.0/tasks/${task_id}/documents`, params);
+      const result = await client.put(`/api/v1.0/tasks/${task_id}/documents`, params);
       return JSON.stringify(result, null, 2);
     },
   });

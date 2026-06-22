@@ -160,4 +160,17 @@ describe("registerTasksTools", () => {
       );
     });
   });
+
+  describe("niftypm_attach_task_document", () => {
+    const tool = server.getTool("niftypm_attach_task_document")!;
+
+    it("should call PUT /api/v1.0/tasks/:id/documents (F-4 fix)", async () => {
+      await tool.execute({ task_id: "task-1", document_id: "doc-1" });
+
+      expect(client.put).toHaveBeenCalledWith(
+        "/api/v1.0/tasks/task-1/documents",
+        { document_id: "doc-1" }
+      );
+    });
+  });
 });

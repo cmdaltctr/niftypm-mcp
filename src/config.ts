@@ -19,7 +19,9 @@ export interface NiftyPMConfig {
   clientSecret: string;
   accessToken: string;
   refreshToken: string;
+  teamToken: string;
   baseUrl: string;
+  internalBaseUrl: string;
   enabledTools: {
     files: boolean;
     labels: boolean;
@@ -42,6 +44,7 @@ export interface NiftyPMConfig {
     templates: boolean;
     users: boolean;
     auth: boolean;
+    checklists: boolean;
   };
   disabledTools: string[];
 }
@@ -136,13 +139,19 @@ export function loadConfig(): NiftyPMConfig {
   const clientSecret = loadCredential("NIFTYPM_CLIENT_SECRET", "client_secret");
   const accessToken = loadCredential("NIFTYPM_ACCESS_TOKEN", "access_token");
   const refreshToken = loadCredential("NIFTYPM_REFRESH_TOKEN", "refresh_token");
+  // Team token for the internal API (api.niftypm.com). Required for
+  // checklist write operations. Obtained from the nifty_auth cookie's
+  // teamToken field — see README "Checklist Setup" for extraction steps.
+  const teamToken = loadCredential("NIFTYPM_TEAM_TOKEN", "team_token");
 
   return {
     clientId,
     clientSecret,
     accessToken,
     refreshToken,
+    teamToken,
     baseUrl: "https://openapi.niftypm.com",
+    internalBaseUrl: "https://api.niftypm.com",
     enabledTools: {
       files: process.env.ENABLE_FILES !== "false",
       labels: process.env.ENABLE_LABELS !== "false",
@@ -165,6 +174,7 @@ export function loadConfig(): NiftyPMConfig {
       templates: process.env.ENABLE_TEMPLATES !== "false",
       users: process.env.ENABLE_USERS !== "false",
       auth: process.env.ENABLE_AUTH !== "false",
+      checklists: process.env.ENABLE_CHECKLISTS !== "false",
     },
     disabledTools: parseDisabledTools(),
   };

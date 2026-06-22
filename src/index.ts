@@ -31,6 +31,7 @@ import {
   registerTemplatesTools,
   registerUsersTools,
   registerAuthTools,
+  registerChecklistsTools,
 } from "./tools/index.js";
 
 const config = loadConfig();
@@ -105,6 +106,18 @@ if (config.enabledTools.users) {
 }
 if (config.enabledTools.auth) {
   registerAuthTools(server, client, config.disabledTools);
+}
+if (config.enabledTools.checklists) {
+  if (!config.teamToken) {
+    console.error(
+      "Warning: Checklist tools are enabled but NIFTYPM_TEAM_TOKEN is not set.\n" +
+      "Checklist read operations will work, but writes (create/update/delete) will fail with 401.\n" +
+      "To obtain a team token: log into your NiftyPM workspace in a browser, open DevTools console, and run:\n" +
+      '  JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken\n' +
+      "Save the output to .secrets/team_token or set NIFTYPM_TEAM_TOKEN env var."
+    );
+  }
+  registerChecklistsTools(server, client, config.disabledTools);
 }
 
 // Determine transport from environment
