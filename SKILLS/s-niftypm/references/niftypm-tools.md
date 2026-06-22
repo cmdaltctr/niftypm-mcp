@@ -61,7 +61,7 @@ Complete reference of all NiftyPM MCP tools, grouped by domain. Load this when y
 | `niftypm_update_task` | Update task fields + set blocking dependency | `task_id` (required), `name`, `description`, `due_date`, `start_date`, `dependency` (predecessor ID), `milestone_id`, `assignees[]`, `story_points` |
 | `niftypm_delete_task` | Delete a single task | `task_id` (required) |
 | `niftypm_delete_tasks` | Delete multiple tasks | `task_ids[]`, `project_id` |
-| `niftypm_list_tasks` | List/filter tasks | `project_id`, `task_group_id`, `member_id`, `milestone_id`, `completed`, `archived`, `limit`, `offset` |
+| `niftypm_list_tasks` | List/filter tasks | `project_id`, `task_group_id`, `member_id`, `milestone_id`, `completed`, `archived`, `limit`, `offset`, `include_subtasks` ("true"/"false"), `task_id` (filter to single task), `sort`, `order`, `from`, `to`, `completed_from`, `completed_to`, `project_ids`, `assignee_ids[]` |
 | `niftypm_complete_task` | Mark task as done | `task_id` (required) |
 | `niftypm_archive_task` | Archive a task | `task_id` (required) |
 | `niftypm_clone_task` | Duplicate a task | `task_id` (required), `target_task_group_id`, `name` |
@@ -77,6 +77,23 @@ Complete reference of all NiftyPM MCP tools, grouped by domain. Load this when y
 | `niftypm_get_task_fields` | Get custom fields for task | `task_id` |
 | `niftypm_attach_task_document` | Attach document to task | `task_id`, `document_id` |
 | `niftypm_update_task_milestone` | Set task milestone | `task_id`, `milestone_id` (omit to remove) |
+
+---
+
+## Checklist Tools
+
+Uses NiftyPM's internal API (`api.niftypm.com`). **Write operations require a team token** — see SKILL.md "Checklist Tools & Team Token Setup" for extraction instructions.
+
+| Tool | Purpose | Key Parameters |
+|------|---------|---------------|
+| `niftypm_create_checklist` | Create a checklist on a task | `task_id` (required), `name` (required) |
+| `niftypm_get_checklist` | Get checklist with items | `checklist_id` (required) |
+| `niftypm_update_checklist` | Rename a checklist | `checklist_id` (required), `name` |
+| `niftypm_delete_checklist` | Delete checklist + all items | `checklist_id` (required) |
+| `niftypm_create_checklist_items` | Add items to a checklist | `checklist_id` (required), `names[]` (required — array of item names) |
+| `niftypm_update_checklist_item` | Rename a checklist item | `checklist_id`, `item_id`, `name` |
+| `niftypm_toggle_checklist_item` | Toggle item completion | `checklist_id`, `item_id`, `completed` (boolean) |
+| `niftypm_delete_checklist_item` | Delete a single item | `checklist_id`, `item_id` |
 
 ---
 

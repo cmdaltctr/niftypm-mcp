@@ -18,8 +18,8 @@ Workspace
       └── Project                ← create with: niftypm_create_project
            ├── Task List/Group   ← create with: niftypm_create_taskgroup
            │    └── Task         ← create with: niftypm_create_task
-           │         └── Subtask ← create with: niftypm_create_task (with task_id)
-           │              └── Checklist ← UI-only, no MCP tool
+            │         └── Subtask ← create with: niftypm_create_task (with task_id)
+            │              └── Checklist ← create with: niftypm_create_checklist + niftypm_create_checklist_items
            ├── Milestone         ← promote a Task List via niftypm_create_milestone
            ├── Doc               ← create with: niftypm_create_document
            ├── File              ← upload with: niftypm_upload_files
@@ -225,6 +225,12 @@ for each task:  niftypm_get_task(task_id) → confirm labels, dates, points, sub
 
 **Key principle**: The JSON file is written and validated BEFORE any MCP mutation. If validation fails, you fix the JSON — never the live NiftyPM board. This is what prevents the empty-field defects.
 
+### Rule 5b: Reverse Sync (NiftyPM → JSON)
+
+The complement to JSON-First Planning. When you need to pull a live NiftyPM project into a local JSON source-of-truth — either an initial build or a re-sync after the app changes — use `scripts/reverse-sync.py`. It reads a bundle of MCP responses (labels, taskgroups, milestones, tasks, members) and produces a schema-compliant JSON with `last_synced` set to the current timestamp.
+
+See [references/reverse-sync-workflow.md](references/reverse-sync-workflow.md) for the four-step agent workflow (fetch → bundle → run → verify).
+
 ---
 
 ## QUICK-START CHEAT SHEET
@@ -305,13 +311,18 @@ NiftyPM offers three ways to represent sub-items. You MUST prefer them in this e
 | Priority | Mechanism                     | When to Use                                                               | Tool Call                                          |
 | -------- | ----------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
 | **1st**      | **Native Subtask**                | Trackable work that needs its own status, assignee, due date, or label        | `niftypm_create_task(task_id="PARENT_ID", task_group_id="...")` |
-| **2nd**      | **Native Checklist**              | Non-trackable sub-steps inside a single task (checked off, not full tasks)    | `niftypm_create_task(name="...", ...)` with checklist items populated in the NiftyPM UI (MCP has no checklist tool yet) |
+| **2nd**      | **Native Checklist**              | Non-trackable sub-steps inside a single task (checked off, not full tasks)    | `niftypm_create_checklist(task_id="...", name="...")` + `niftypm_create_checklist_items(checklist_id="...", names=["item 1", "item 2"])` |
 | **LAST**     | Markdown `- [ ]` in description | **THROWAWAY NOTES ONLY.** Never use for work breakdown that another agent or human might need to act on.                 | Just text in `description`                              |
 
 **RULES:**
 1. If a sub-step represents work someone might search for, assign, or track separately → **NATIVE SUBTASK.**
-2. If sub-steps are just clarification within a single doer's workflow → native checklist (UI-only at this time) or brief markdown.
+2. If sub-steps are just clarification within a single doer's workflow → use **native checklists** via `niftypm_create_checklist` + `niftypm_create_checklist_items` (requires team token — see [Checklist Tools & Team Token Setup](#checklist-tools--team-token-setup) below).
 3. **NEVER use `- [ ]` in descriptions as a substitute for real subtasks.** The skill that created AIE-20 embedded 4 real work items as markdown text — those should have been `niftypm_create_task(task_id="AIE-20_ID")` calls.
+
+**Retrieving subtasks:** `niftypm_list_tasks` now accepts `include_subtasks: "true"` and `task_id` (the parent task's internal ID). Use both together to fetch a task with all its subtasks in a single call:
+```
+niftypm_list_tasks(task_id="n4kd7Mzub2", include_subtasks="true")
+```
 
 ```markdown
 // RIGHT — real subtask:
@@ -328,7 +339,66 @@ description: "Tasks:\n- [ ] Verify ONNX export\n- [ ] A/B test..."
 
 ---
 
-## DOMAIN WORKFLOWS
+## CHECKLIST TOOLS & TEAM TOKEN SETUP
+
+Checklist tools (`niftypm_create_checklist`, `niftypm_create_checklist_items`, `niftypm_update_checklist_item`, `niftypm_toggle_checklist_item`, `niftypm_delete_checklist_item`, etc.) use NiftyPM's **internal API** (`api.niftypm.com`), which is separate from the public OpenAPI at `openapi.niftypm.com`. This internal API requires a **team token** for write operations — the OAuth access token used by all other tools returns 401 on checklist mutations.
+
+### When the team token is missing
+
+- Checklist **reads** (`niftypm_get_checklist`) work with the OAuth token alone.
+- Checklist **writes** (create/update/delete) return `401 Unauthorized`.
+- A warning prints at server startup if `NIFTYPM_TEAM_TOKEN` is not set.
+
+### How to obtain the team token
+
+**The user must extract it from their browser once.** There is no API endpoint to exchange the OAuth token for a team token.
+
+1. Log into the NiftyPM workspace in a browser.
+2. Open DevTools Console (F12 → Console tab).
+3. Run this one-liner:
+   ```javascript
+   JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken
+   ```
+4. Copy the output (a long JWT string).
+
+### Where to store it (two methods)
+
+**Method 1 — `.secrets/` file** (recommended for local/OpenCode setups):
+```bash
+echo "PASTE_TOKEN_HERE" > .secrets/team_token
+```
+
+**Method 2 — `.env` or environment variable:**
+```bash
+# In .env:
+NIFTYPM_TEAM_TOKEN=PASTE_TOKEN_HERE
+
+# Or export inline:
+export NIFTYPM_TEAM_TOKEN=PASTE_TOKEN_HERE
+```
+
+The MCP server reads from `.secrets/team_token` first (via the same credential-loading pattern as the other secrets), falling back to the `NIFTYPM_TEAM_TOKEN` env var.
+
+### Token expiry
+
+The team token has a long expiry (months — it's the same cookie that keeps you logged into the web app). If checklist operations start returning 401, repeat the extraction above.
+
+### Checklist tool reference
+
+| Tool | Endpoint | Notes |
+|------|----------|-------|
+| `niftypm_create_checklist` | `POST /checklists` | Body: `{task_id, name}` |
+| `niftypm_get_checklist` | `GET /checklists/{id}` | Returns checklist with `items[]` |
+| `niftypm_update_checklist` | `PUT /checklists/{id}` | Rename |
+| `niftypm_delete_checklist` | `DELETE /checklists/{id}` | Deletes checklist + all items |
+| `niftypm_create_checklist_items` | `POST /checklists/{id}` | **Body is an ARRAY** `[{name}]` — tool handles this automatically from `names` param |
+| `niftypm_update_checklist_item` | `PUT /checklists/{cid}/{iid}` | Rename item |
+| `niftypm_toggle_checklist_item` | `PUT /checklists/{cid}/{iid}` | `{completed: true/false}` |
+| `niftypm_delete_checklist_item` | `DELETE /checklists/{cid}/{iid}` | Delete single item |
+
+Full API reference: `docs/api/checklist-api-discovery.md` and `docs/api/checklist-endpoints.json`.
+
+---
 
 Detailed workflows are in the reference files. Here are the triggers:
 
@@ -364,6 +434,9 @@ When the user says "I need to..." — use the exact tool listed:
 | "Clone/duplicate this task" | Clone task | `niftypm_clone_task` |
 | "Add a label/tag" | Add task labels | `niftypm_add_task_labels` |
 | "Create a milestone / sprint" | Create milestone | `niftypm_create_milestone` |
+| "Create a checklist on a task" | Create checklist | `niftypm_create_checklist` |
+| "Add checklist items" | Create checklist items | `niftypm_create_checklist_items` |
+| "Toggle checklist item" | Toggle completion | `niftypm_toggle_checklist_item` |
 | "Tie these tasks to a milestone" | Tie milestone tasks | `niftypm_tie_milestone_tasks` |
 | "Make this task block that one" | Blocking dependency | `niftypm_update_task(task_id="B", dependency="A")` |
 | "Link these related tasks" | Informational cross-reference | `niftypm_link_task` |

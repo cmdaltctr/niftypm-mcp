@@ -106,6 +106,21 @@ The main client also auto-refreshes access tokens in memory when an API call ret
 | `niftypm_list_chats` | List all chat conversations. |
 | `niftypm_get_chat` | Get a specific chat conversation by ID. |
 
+### Checklists
+
+Uses NiftyPM's internal API (`api.niftypm.com`). Write operations require a team token — see [Checklist setup](../../README.md#checklist-setup-optional).
+
+| Tool | Purpose |
+| --- | --- |
+| `niftypm_create_checklist` | Create a checklist on a task. |
+| `niftypm_get_checklist` | Get a checklist by ID, including its items. |
+| `niftypm_update_checklist` | Rename a checklist. |
+| `niftypm_delete_checklist` | Delete a checklist and all its items. |
+| `niftypm_create_checklist_items` | Add one or more items to a checklist. |
+| `niftypm_update_checklist_item` | Rename a checklist item. |
+| `niftypm_toggle_checklist_item` | Toggle the completion status of a checklist item. |
+| `niftypm_delete_checklist_item` | Delete a single checklist item. |
+
 ### Documents
 
 | Tool | Purpose |

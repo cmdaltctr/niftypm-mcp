@@ -2,7 +2,7 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for the [NiftyPM](https://niftypm.com) project management API.
 
-It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones, messages, labels, portfolios, webhooks, time tracking, custom fields, and related workspace resources through typed MCP tools.
+It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones, messages, labels, portfolios, webhooks, time tracking, custom fields, checklists, and related workspace resources through typed MCP tools.
 
 ## Highlights
 
@@ -45,7 +45,7 @@ The easiest setup path is the static configurator at [`ui/index.html`](ui/index.
 
 The configurator runs entirely in your browser. It makes no network requests and does not send secrets anywhere.
 
-The **Simple** tab shows 20 domain-level switches (core + extended). The
+The **Simple** tab shows 21 domain-level switches (core + extended + checklists). The
 **Advanced** tab gives you per-tool control — disable individual tools
 within an enabled domain, down to a single unwanted operation. The
 generated `.env` is auto-loaded on server start.
@@ -100,7 +100,35 @@ For OpenCode or local setups, you may store credentials in `.secrets/` files ins
 .secrets/client_secret
 .secrets/access_token
 .secrets/refresh_token
+.secrets/team_token       (optional — needed for checklist write operations)
 ```
+
+### Checklist setup (optional)
+
+Checklist tools use NiftyPM's internal API (`api.niftypm.com`) which requires a **team token** — a separate credential from the OAuth access token. Without it, checklist reads work but writes (create/update/delete) return 401.
+
+To obtain the team token:
+
+1. Log into your NiftyPM workspace in a browser.
+2. Open DevTools Console (F12 → Console).
+3. Run this one-liner:
+   ```javascript
+   JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken
+   ```
+4. Save the output using one of these methods:
+
+   **Option A — `.secrets/` file** (recommended for local/OpenCode setups):
+   ```bash
+   echo "PASTE_TOKEN_HERE" > .secrets/team_token
+   ```
+
+   **Option B — `.env` or environment variable:**
+   ```bash
+   # In .env:
+   NIFTYPM_TEAM_TOKEN=PASTE_TOKEN_HERE
+   ```
+
+The team token has a long expiry (months). If checklist operations start returning 401, repeat the extraction.
 
 The UI configurator remains the easiest path because it generates a complete `.env` by copy-paste and download. See [Configuration and Deployment](docs/guides/configuration.md) for more deployment details.
 
@@ -136,6 +164,7 @@ The server groups tools by NiftyPM resource domain:
 
 - Projects, portfolios/subteams, members
 - Task groups, tasks, subtasks, labels, custom fields
+- Checklists and checklist items (requires team token — see [Checklist setup](#checklist-setup-optional))
 - Documents, files, messages, chat
 - Milestones, time tracking, webhooks
 - Apps, templates, invite links, current user, auth helpers
