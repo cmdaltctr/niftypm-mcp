@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode.ai/niftypm-project-plan-schema.json",
+  "title": "NiftyPM Project Plan",
+  "description": "Source-of-truth JSON plan for populating NiftyPM projects via MCP tools. Write this FIRST, validate, then execute via four-phase pipeline (Phase 0: labels, Phase 1: create, Phase 2: enrich, Phase 3: verify). See s-niftypm references/niftypm-project-plan-schema.md for the full specification.",
+
+  "type": "object",
+  "required": ["meta", "project", "labels", "task_lists", "milestones", "tasks"],
+  "additionalProperties": false,
+
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema file",
+      "const": "https://opencode.ai/niftypm-project-plan-schema.json"
+    },
+    "$comment": {
+      "type": "string",
+      "description": "Human-readable note about the plan"
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["created", "last_updated"],
+      "additionalProperties": false,
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the plan was generated"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp"
+        },
+        "generated_by": {
+          "type": "string",
+          "description": "Agent/model that created the plan"
+        },
+        "project_nice_id": {
+          "type": "string",
+          "description": "Short project ID prefix (e.g., 'AIE', 'NMQ')"
+        },
+        "niftypm_project_id": {
+          "type": "string",
+          "description": "NiftyPM internal project ID (populated after creation)"
+        }
+      }
+    },
+
+    "project": {
+      "type": "object",
+      "required": ["name", "description", "portfolio"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project description (1-3 sentences)"
+        },
+        "portfolio": {
+          "type": "string",
+          "description": "Portfolio/Subteam name"
+        },
+        "portfolio_id": {
+          "type": "string",
+          "description": "Portfolio ID (populated after discovery)"
+        },
+        "repo": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHub repository URL"
+        }
+      }
+    },
+
+    "labels": {
+      "type": "array",
+      "minItems": 5,
+      "description": "Label taxonomy — create BEFORE any tasks (Phase 0)",
+      "items": {
+        "type": "object",
+        "required": ["name", "color"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Label display name"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "description": "Hex colour code (e.g., '#FF0000')"
+          },
+          "id": {
+            "type": "string",
+            "description": "NiftyPM label ID (populated after creation)"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "When to use this label"
+          }
+        }
+      }
+    },
+
+    "task_lists": {
+      "type": "array",
+      "minItems": 3,
+      "description": "Task groups/lists — at minimum: Todo, In Progress, Done",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name"
+          },
+          "id": {
+            "type": "string",
+            "description": "NiftyPM ID (populated after creation/reconciliation)"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 100,
+            "description": "Display order (100, 200, 300...)"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "What goes in this list"
+          }
+        }
+      }
+    },
+
+    "milestones": {
+      "type": "array",
+      "minItems": 3,
+      "description": "Project milestones/timeboxes — at minimum: M0 (overview) + M1 (first sprint)",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name (include emoji prefix for Roadmap view)"
+          },
+          "id": {
+            "type": "string",
+            "description": "NiftyPM ID (populated after creation/reconciliation)"
+          },
+          "due": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Due date (ISO 8601 date, null for undated milestones)"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this milestone covers"
+          }
+        }
+      }
+    },
+
+    "tasks": {
+      "type": "array",
+      "description": "All tasks including parent tasks and top-level tasks. Subtasks are nested inside their parent's subtasks[] array.",
+      "items": {
+        "type": "object",
+        "required": ["name", "task_list", "milestone", "description", "story_points"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "NiftyPM internal ID (populated after creation)"
+          },
+          "nice_id": {
+            "type": "string",
+            "description": "Short ID (e.g., 'AIE-20')"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Task name"
+          },
+          "task_list": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the task list (must match task_lists[].name)"
+          },
+          "milestone": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the milestone (must match milestones[].name)"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "1-3 sentences, with links where helpful. NO markdown - [ ] checklists."
+          },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Array of label NAMES (not IDs). Must match labels[].name."
+          },
+          "story_points": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Effort estimate. null only for decisions/notes. >0 for all actionable tasks."
+          },
+          "due_date": {
+            "type": ["string", "null"],
+            "description": "ISO 8601 date or null for backlog items without deadline"
+          },
+          "start_date": {
+            "type": ["string", "null"],
+            "description": "ISO 8601 date or null"
+          },
+          "dependency": {
+            "type": ["string", "null"],
+            "description": "NICE_ID of blocking predecessor (e.g., 'AIE-22'). null if no dependency."
+          },
+          "subtasks": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Array of subtask names. These become real niftypm_create_task(task_id=PARENT) calls. NEVER put - [ ] in description instead."
+          },
+          "assignees": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Array of member IDs or names"
+          }
+        }
+      }
+    },
+
+    "dependency_graph": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["blocking", "informational"]
+      },
+      "description": "Human-readable dependency map: 'AIE-20 → AIE-22': 'blocking'"
+    },
+
+    "_validation_checklist": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Validation checklist to run before any MCP call"
+    }
+  }
+}

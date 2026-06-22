@@ -1,0 +1,79 @@
+{
+  "$schema": "https://opencode.ai/niftypm-project-plan-schema.json",
+  "$comment": "TEMPLATE — copy this file, fill in your project details, validate against the schema, then execute via three-phase pipeline. Fields marked with ← FILL are required. Fields with values like null or [] are optional.",
+
+  "meta": {
+    "created": "2026-01-01T00:00:00Z",
+    "last_updated": "2026-01-01T00:00:00Z",
+    "generated_by": "",
+    "project_nice_id": "",
+    "niftypm_project_id": null
+  },
+
+  "project": {
+    "name": "",
+    "description": "",
+    "portfolio": "",
+    "portfolio_id": null,
+    "repo": null
+  },
+
+  "labels": [
+    { "name": "P0 — Critical",  "color": "#FF0000", "id": null, "purpose": "Blocking, must-do immediately" },
+    { "name": "P1 — High",      "color": "#FF8C00", "id": null, "purpose": "Important, do this sprint" },
+    { "name": "Research",       "color": "#00AA00", "id": null, "purpose": "Literature review, experiments, analysis" },
+    { "name": "Experiment",     "color": "#00CED1", "id": null, "purpose": "A/B testing, benchmarks, prototyping" },
+    { "name": "Writing",        "color": "#FF69B4", "id": null, "purpose": "Documentation, ADRs, papers" },
+    { "name": "Docs",           "color": "#A9A9A9", "id": null, "purpose": "README, guides, API docs" },
+    { "name": "Infrastructure", "color": "#4B0082", "id": null, "purpose": "CI/CD, deployment, tooling" },
+    { "name": "Security",       "color": "#228B22", "id": null, "purpose": "Vulnerability remediation, auth" },
+    { "name": "Bug",            "color": "#DC143C", "id": null, "purpose": "Bug fixes, regression tests" }
+  ],
+
+  "task_lists": [
+    { "name": "To Do",        "id": null, "order": 100, "purpose": "Upcoming planned work" },
+    { "name": "In Progress",  "id": null, "order": 200, "purpose": "Currently active tasks" },
+    { "name": "Done",         "id": null, "order": 300, "purpose": "Completed work" },
+    { "name": "Backlog",      "id": null, "order": 400, "purpose": "Prioritised backlog items" }
+  ],
+
+  "milestones": [
+    { "name": "📋 M0: Project Overview",    "id": null, "due": null,        "description": "Container-level overview" },
+    { "name": "🔴 M1: Sprint 1 — Core",     "id": null, "due": "2026-02-01", "description": "First deliverable sprint" },
+    { "name": "🟡 M2: Sprint 2 — Growth",   "id": null, "due": "2026-03-01", "description": "Second sprint" }
+  ],
+
+  "tasks": [
+    {
+      "id": null,
+      "nice_id": null,
+      "name": "",
+      "task_list": "To Do",
+      "milestone": "🔴 M1: Sprint 1 — Core",
+      "description": "",
+      "labels": [],
+      "story_points": null,
+      "due_date": null,
+      "start_date": null,
+      "dependency": null,
+      "subtasks": [],
+      "assignees": []
+    }
+  ],
+
+  "dependency_graph": {},
+
+  "_validation_checklist": [
+    "Every task has task_list assigned (name must match task_lists[].name)",
+    "Every task has milestone assigned (name must match milestones[].name)",
+    "Labels referenced by name; IDs populated after Phase 0 creation",
+    "Dependencies reference nice_id (e.g., 'PRJ-22'), not raw ID",
+    "Subtasks listed under parent task's subtasks[] array, NOT as markdown - [ ] in description",
+    "Story points >0 for active tasks, null for decisions/notes only",
+    "Due dates in ISO 8601 format (YYYY-MM-DD)",
+    "All milestones have descriptions",
+    "task_lists has at least 3 entries",
+    "milestones has at least 2 entries beyond M0",
+    "labels has at least 5 entries covering urgency + domain"
+  ]
+}
