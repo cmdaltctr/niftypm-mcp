@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.3.0...v1.4.0) (2026-06-23)
+
+
+### Features
+
+* **skills:** add reverse-sync script and workflow to s-niftypm bundle ([fa89f64](https://github.com/cmdaltctr/niftypm-mcp/commit/fa89f6452b6b71da035e9afceab693fddbc1c941))
+
 # [1.3.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.2.3...v1.3.0) (2026-06-22)
 
 
