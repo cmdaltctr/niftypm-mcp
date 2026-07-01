@@ -8,11 +8,22 @@
 
 import type { NiftyPMConfig } from "./config.js";
 
+export interface MutationEntry {
+  method: string;
+  endpoint: string;
+  baseUrl?: string;
+  requestBody?: any;
+  responseBody?: any;
+}
+
 export class NiftyPMClient {
   private config: NiftyPMConfig;
 
   /** Prevent concurrent refresh attempts. */
   private refreshPromise: Promise<void> | null = null;
+
+  /** Optional callback fired after successful POST/PUT/DELETE. */
+  onMutation?: (entry: MutationEntry) => void | Promise<void>;
 
   constructor(config: NiftyPMConfig) {
     this.config = config;
@@ -67,10 +78,10 @@ export class NiftyPMClient {
       try {
         const err = (await response.json()) as any;
         errorMessage = err.message || err.error || response.statusText;
-      } catch { /* fall back to statusText */ }
-      throw new Error(
-        `Token refresh failed (${response.status}): ${errorMessage}`
-      );
+      } catch {
+        /* fall back to statusText */
+      }
+      throw new Error(`Token refresh failed (${response.status}): ${errorMessage}`);
     }
 
     const data = (await response.json()) as {
@@ -91,13 +102,9 @@ export class NiftyPMClient {
    * the request once, provided the request used the default Bearer
    * token (not a caller-supplied Authorization header).
    */
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {},
-    baseUrl?: string,
-  ): Promise<T> {
+  async request<T>(endpoint: string, options: RequestInit = {}, baseUrl?: string): Promise<T> {
     const url = `${baseUrl || this.config.baseUrl}${endpoint}`;
-    
+
     const headers = new Headers(options.headers);
     const hasCustomAuth = headers.has("Authorization");
     if (!hasCustomAuth) {
@@ -116,31 +123,66 @@ export class NiftyPMClient {
       // On first 401 with default Bearer auth, refresh and retry.
       if (response.status === 401 && !hasCustomAuth && attempt === 0) {
         await this.refreshAccessToken();
-        headers.set(
-          "Authorization",
-          `Bearer ${this.config.accessToken}`
-        );
+        headers.set("Authorization", `Bearer ${this.config.accessToken}`);
         continue; // retry with fresh token
       }
 
       if (!response.ok) {
         // Use statusText only to avoid leaking upstream error bodies
         // (which could contain tokens) into logs or LLM context.
-        throw new Error(
-          `NiftyPM API error (${response.status}): ${response.statusText}`
-        );
+        throw new Error(`NiftyPM API error (${response.status}): ${response.statusText}`);
       }
 
       // 204 No Content — no body to parse
       if (response.status === 204) {
+        this.fireMutation(options.method, endpoint, baseUrl, options.body);
         return {} as T;
       }
 
-      return response.json() as Promise<T>;
+      const result = (await response.json()) as T;
+      this.fireMutation(options.method, endpoint, baseUrl, options.body, result);
+      return result;
     }
 
     // Should never be reached — the loop always returns or throws.
     throw new Error("NiftyPM API error: unexpected request state");
+  }
+
+  /**
+   * Fire onMutation callback for POST/PUT/DELETE if set.
+   * Errors are caught and logged to stderr — never propagate.
+   */
+  private fireMutation(
+    method: string | undefined,
+    endpoint: string,
+    baseUrl?: string,
+    requestBody?: BodyInit | null,
+    responseBody?: any,
+  ): void {
+    if (!this.onMutation) return;
+    const upper = (method || "GET").toUpperCase();
+    if (upper === "GET") return;
+
+    let parsedBody: any = undefined;
+    if (requestBody && typeof requestBody === "string") {
+      try {
+        parsedBody = JSON.parse(requestBody);
+      } catch {
+        /* not JSON */
+      }
+    }
+
+    try {
+      this.onMutation({
+        method: upper,
+        endpoint,
+        baseUrl,
+        requestBody: parsedBody,
+        responseBody,
+      });
+    } catch (err) {
+      console.error("[local-sync] onMutation error:", err);
+    }
   }
 
   /**
@@ -152,7 +194,7 @@ export class NiftyPMClient {
   async formUpload<T>(
     endpoint: string,
     formData: FormData,
-    params?: Record<string, any>
+    params?: Record<string, any>,
   ): Promise<T> {
     const url = new URL(`${this.config.baseUrl}${endpoint}`);
     if (params) {
@@ -181,12 +223,12 @@ export class NiftyPMClient {
       }
 
       if (!response.ok) {
-        throw new Error(
-          `NiftyPM API error (${response.status}): ${response.statusText}`
-        );
+        throw new Error(`NiftyPM API error (${response.status}): ${response.statusText}`);
       }
 
-      return response.json() as Promise<T>;
+      const result = (await response.json()) as T;
+      this.fireMutation("POST", endpoint, undefined, undefined, result);
+      return result;
     }
 
     throw new Error("NiftyPM API error: unexpected upload request state");
@@ -204,7 +246,7 @@ export class NiftyPMClient {
         }
       });
     }
-    
+
     return this.request<T>(url.pathname + url.search, { method: "GET" });
   }
 
@@ -260,32 +302,48 @@ export class NiftyPMClient {
         }
       });
     }
-    return this.request<T>(url.pathname + url.search, {
-      method: "GET",
-      headers: this.internalAuthHeaders(),
-    }, this.config.internalBaseUrl);
+    return this.request<T>(
+      url.pathname + url.search,
+      {
+        method: "GET",
+        headers: this.internalAuthHeaders(),
+      },
+      this.config.internalBaseUrl,
+    );
   }
 
   async internalPost<T>(endpoint: string, body?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "POST",
-      headers: this.internalAuthHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    }, this.config.internalBaseUrl);
+    return this.request<T>(
+      endpoint,
+      {
+        method: "POST",
+        headers: this.internalAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      this.config.internalBaseUrl,
+    );
   }
 
   async internalPut<T>(endpoint: string, body?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "PUT",
-      headers: this.internalAuthHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    }, this.config.internalBaseUrl);
+    return this.request<T>(
+      endpoint,
+      {
+        method: "PUT",
+        headers: this.internalAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      this.config.internalBaseUrl,
+    );
   }
 
   async internalDelete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: "DELETE",
-      headers: this.internalAuthHeaders(),
-    }, this.config.internalBaseUrl);
+    return this.request<T>(
+      endpoint,
+      {
+        method: "DELETE",
+        headers: this.internalAuthHeaders(),
+      },
+      this.config.internalBaseUrl,
+    );
   }
 }

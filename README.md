@@ -7,6 +7,8 @@ It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones,
 ## Highlights
 
 - Local `stdio` server for desktop MCP clients.
+- CLI subcommands: `init` (bootstrap local JSON), `sync` (re-sync from API), direct tool invocation.
+- Local auto-sync: automatically updates `niftypm/*.json` files after mutations.
 - Optional HTTP stream transport for local testing.
 - Cloudflare Workers entry point for hosted/remote use.
 - OAuth bearer-token API client with in-memory token refresh on `401`.
@@ -25,6 +27,7 @@ It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones,
   - `NIFTYPM_REFRESH_TOKEN`
 
 ## Install
+
 ```bash
 git clone https://github.com/cmdaltctr/niftypm-mcp.git
 cd niftypm-mcp
@@ -113,16 +116,18 @@ To obtain the team token:
 2. Open DevTools Console (F12 → Console).
 3. Run this one-liner:
    ```javascript
-   JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken
+   JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken;
    ```
 4. Save the output using one of these methods:
 
    **Option A — `.secrets/` file** (recommended for local/OpenCode setups):
+
    ```bash
    echo "PASTE_TOKEN_HERE" > .secrets/team_token
    ```
 
    **Option B — `.env` or environment variable:**
+
    ```bash
    # In .env:
    NIFTYPM_TEAM_TOKEN=PASTE_TOKEN_HERE
@@ -139,6 +144,7 @@ bun run start
 ```
 
 Watch mode:
+
 ```bash
 bun run dev
 ```
@@ -183,12 +189,12 @@ The `SKILLS/` folder contains drop-in agent skill instructions that teach AI cod
 
 Copy the `SKILLS/s-niftypm/` folder to the appropriate location for your AI client:
 
-| AI Client | Destination path |
-|-----------|------------------|
-| **Claude Code** | `~/.claude/skills/s-niftypm/` |
-| **OpenCode** | `~/.config/opencode/skills/s-niftypm/` |
-| **Cursor** | `~/.cursor/rules/` (then wrap `SKILL.md` in a `.mdc` rule) |
-| **Other** | Check your client's docs for a skills/rules directory |
+| AI Client       | Destination path                                           |
+| --------------- | ---------------------------------------------------------- |
+| **Claude Code** | `~/.claude/skills/s-niftypm/`                              |
+| **OpenCode**    | `~/.config/opencode/skills/s-niftypm/`                     |
+| **Cursor**      | `~/.cursor/rules/` (then wrap `SKILL.md` in a `.mdc` rule) |
+| **Other**       | Check your client's docs for a skills/rules directory      |
 
 Example (Claude Code / OpenCode):
 
@@ -229,8 +235,54 @@ Create a related subtask by passing the parent task ID as `task_id`:
 }
 ```
 
+## CLI Usage
+
+The `niftypm-mcp` binary supports CLI subcommands in addition to starting the MCP server. This is useful for bootstrapping local project JSON files, re-syncing from the live API, and calling tools directly from the command line.
+
+### `niftypm-mcp init`
+
+Interactive wizard that lists all accessible NiftyPM projects, lets you select one, fetches all entities, and writes a structured JSON file to `niftypm/<project-name>.json` in the current working directory.
+
+```bash
+cd /path/to/your/project
+niftypm-mcp init
+```
+
+### `niftypm-mcp sync`
+
+Re-syncs an existing local JSON file from the live NiftyPM API. Reads `meta.niftypm_project_id` from the local file, fetches all entities, and rewrites the file with fresh data.
+
+```bash
+cd /path/to/your/project
+niftypm-mcp sync
+```
+
+### Direct tool invocation
+
+Any registered MCP tool can be called directly from the CLI. Arguments are parsed as `--key value` pairs:
+
+```bash
+niftypm-mcp niftypm_list_tasks --project_id "abc123"
+niftypm-mcp niftypm_create_task --name "Fix bug" --task_group_id "abc123"
+niftypm-mcp niftypm_list_tasks --project_id "abc123" --completed
+```
+
+- Repeated flags produce arrays: `--label lab1 --label lab2`
+- Boolean flags: `--completed` (true), `--no-archived` (false)
+
+### Local auto-sync
+
+When the MCP server starts in `stdio` mode, it scans `niftypm/*.json` in the current working directory. If local JSON files are found, the server automatically updates the affected section after every mutation (POST/PUT/DELETE). This provides an offline backup that stays in sync with live NiftyPM data.
+
+- **No configuration needed** — just run `niftypm-mcp init` in your project directory.
+- **Targeted refetch** — only the affected entity type is re-fetched, not the entire project.
+- **Atomic writes** — files are written to a temp file then renamed to prevent corruption.
+- **Silent disable** — if no `niftypm/` directory or JSON files are found, auto-sync is silently disabled.
+- **Workers-safe** — auto-sync is only active in Node.js stdio mode, never in Cloudflare Workers.
+
 ## Documentation
 
+- [CLI Guide](docs/guides/cli.md)
 - [Configuration and Deployment](docs/guides/configuration.md)
 - [Tool Guide](docs/guides/tools.md)
 - [API Coverage](docs/guides/api-coverage.md)

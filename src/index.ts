@@ -10,6 +10,8 @@
 import { FastMCP } from "fastmcp";
 import { loadConfig, validateConfig } from "./config.js";
 import { NiftyPMClient } from "./client.js";
+import { LocalSync } from "./local-sync.js";
+import { runCli } from "./cli.js";
 import {
   registerFilesTools,
   registerLabelsTools,
@@ -37,8 +39,14 @@ import {
 const config = loadConfig();
 validateConfig(config);
 
-
 const client = new NiftyPMClient(config);
+
+// ── Local sync (stdio mode only) ────────────────────────────────────
+// Auto-discover niftypm/*.json in cwd and wire mutation callback.
+// No-op if no local JSON files are found.
+const localSync = new LocalSync(client);
+localSync.discover();
+client.onMutation = localSync.onMutation;
 
 const server = new FastMCP({
   name: "niftypm-mcp",
@@ -111,25 +119,39 @@ if (config.enabledTools.checklists) {
   if (!config.teamToken) {
     console.error(
       "Warning: Checklist tools are enabled but NIFTYPM_TEAM_TOKEN is not set.\n" +
-      "Checklist read operations will work, but writes (create/update/delete) will fail with 401.\n" +
-      "To obtain a team token: log into your NiftyPM workspace in a browser, open DevTools console, and run:\n" +
-      '  JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken\n' +
-      "Save the output to .secrets/team_token or set NIFTYPM_TEAM_TOKEN env var."
+        "Checklist read operations will work, but writes (create/update/delete) will fail with 401.\n" +
+        "To obtain a team token: log into your NiftyPM workspace in a browser, open DevTools console, and run:\n" +
+        "  JSON.parse(decodeURIComponent(document.cookie.match(/nifty_auth=([^;]+)/)[1])).teamToken\n" +
+        "Save the output to .secrets/team_token or set NIFTYPM_TEAM_TOKEN env var.",
     );
   }
   registerChecklistsTools(server, client, config.disabledTools);
 }
 
-// Determine transport from environment
-const transport = process.env.TRANSPORT || "stdio";
-
-if (transport === "http") {
-  const port = parseInt(process.env.PORT || "8080", 10);
-  server.start({
-    transportType: "httpStream",
-    httpStream: { host: "127.0.0.1", port, endpoint: "/mcp" },
-  });
-  console.error(`NiftyPM MCP server listening on http://localhost:${port}/mcp`);
+// ── CLI dispatch ────────────────────────────────────────────────────
+// If a subcommand is provided, run CLI and exit. Otherwise start MCP server.
+const hasSubcommand = process.argv[2] && !process.argv[2].startsWith("-");
+if (hasSubcommand) {
+  runCli()
+    .then(() => {
+      // runCli handles its own process.exit, but as a fallback:
+    })
+    .catch((err) => {
+      console.error(`CLI error: ${err.message}`);
+      process.exit(1);
+    });
 } else {
-  server.start({ transportType: "stdio" });
+  // Determine transport from environment
+  const transport = process.env.TRANSPORT || "stdio";
+
+  if (transport === "http") {
+    const port = parseInt(process.env.PORT || "8080", 10);
+    server.start({
+      transportType: "httpStream",
+      httpStream: { host: "127.0.0.1", port, endpoint: "/mcp" },
+    });
+    console.error(`NiftyPM MCP server listening on http://localhost:${port}/mcp`);
+  } else {
+    server.start({ transportType: "stdio" });
+  }
 }
