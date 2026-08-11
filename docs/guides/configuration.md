@@ -4,16 +4,29 @@ This guide contains setup details that are intentionally kept out of the lean RE
 
 ## Environment variables
 
-Required OAuth credentials:
+### Auth modes
 
-| Variable | Purpose |
-| --- | --- |
-| `NIFTYPM_CLIENT_ID` | OAuth client ID. |
-| `NIFTYPM_CLIENT_SECRET` | OAuth client secret. |
-| `NIFTYPM_ACCESS_TOKEN` | Bearer token used for NiftyPM API requests. |
-| `NIFTYPM_REFRESH_TOKEN` | OAuth refresh token for automatic `401` recovery. Required for stable connections. |
+The server supports two auth modes, tried in this order:
 
-## How to get the refresh token
+1. **API token (primary, recommended)** — a NiftyPM personal access token (`nft_user_…`) from **Settings → MCP & AI assistants → API tokens**. One token, no refresh dance. Use **Full access** (or **Custom** with the write actions you need); **Read-only** tokens will reject writes. Tokens live up to 365 days and are revocable from the same UI within ~1 minute. On a `401` the server throws an actionable error pointing you back to the token-management UI — there is no refresh mechanism, and none is needed.
+2. **OAuth (fallback)** — the four-credential OAuth 2.0 flow. Only consulted when `NIFTYPM_API_TOKEN` is absent. The access token is short-lived and refreshed via the refresh token on `401`.
+
+| Variable                | Mode     | Purpose                                                                                             |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `NIFTYPM_API_TOKEN`     | Primary  | Personal access token (`nft_user_…`). When set, all OAuth vars are ignored.                         |
+| `NIFTYPM_CLIENT_ID`     | Fallback | OAuth client ID.                                                                                    |
+| `NIFTYPM_CLIENT_SECRET` | Fallback | OAuth client secret.                                                                                |
+| `NIFTYPM_ACCESS_TOKEN`  | Fallback | OAuth bearer token used for NiftyPM API requests.                                                   |
+| `NIFTYPM_REFRESH_TOKEN` | Fallback | OAuth refresh token for automatic `401` recovery. Required for stable connections in fallback mode. |
+
+## How to get an API token (recommended)
+
+1. Open NiftyPM → **Settings → MCP & AI assistants → API tokens**.
+2. Create a token with **Full access** (or **Custom** with the write actions you need).
+3. Set an expiry of up to 365 days.
+4. Put it in `.env` as `NIFTYPM_API_TOKEN` (or `.secrets/api_token`).
+
+## How to get the OAuth refresh token (fallback)
 
 The refresh token comes from NiftyPM's **OAuth 2.0 authorisation-code flow**. It is not an API key and it is not the same as the access token.
 
@@ -22,7 +35,6 @@ The sequence is:
 1. **Create a NiftyPM app**
 
    NiftyPM gives you:
-
    - `Client ID`
    - `Client Secret`
    - `Authorize URL`
@@ -68,7 +80,6 @@ The sequence is:
 5. **Store the returned tokens**
 
    NiftyPM returns:
-
    - `access_token`
    - `refresh_token`
    - `token_type`
@@ -88,11 +99,11 @@ Access token is what actually authorises API calls.
 
 Optional transport variables:
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `TRANSPORT` | `stdio` | Set to `http` to run a local HTTP stream transport. |
-| `PORT` | `8080` | Local HTTP port when `TRANSPORT=http`. |
-| `MCP_AUTH_SECRET` | unset | Required by the Cloudflare Workers entry point. |
+| Variable          | Default | Purpose                                             |
+| ----------------- | ------- | --------------------------------------------------- |
+| `TRANSPORT`       | `stdio` | Set to `http` to run a local HTTP stream transport. |
+| `PORT`            | `8080`  | Local HTTP port when `TRANSPORT=http`.              |
+| `MCP_AUTH_SECRET` | unset   | Required by the Cloudflare Workers entry point.     |
 
 ## UI Configurator
 
@@ -100,6 +111,7 @@ The project ships a static HTML configurator at `ui/index.html`. It is the
 easiest way to generate a `.env` file without editing anything by hand.
 
 **How to use:**
+
 1. Open `ui/index.html` in a browser (works via `file://` — no server needed).
 2. Paste your OAuth credentials in the form.
 3. Switch between the **Simple** and **Advanced** tabs to configure tools.
@@ -161,6 +173,7 @@ precedence over values in `.env`. No special flag or `--env-file` option is
 needed — dropping a `.env` in the project root just works.
 
 ## Tool toggles
+
 Each domain can be disabled by setting its flag to `false`:
 
 ```dotenv
@@ -193,6 +206,7 @@ bun run start
 ```
 
 For watch mode:
+
 ```bash
 bun run dev
 ```
@@ -213,11 +227,13 @@ bun run cf:deploy
 For production Workers secrets:
 
 ```bash
-wrangler secret put NIFTYPM_ACCESS_TOKEN
-wrangler secret put NIFTYPM_REFRESH_TOKEN
-wrangler secret put NIFTYPM_CLIENT_ID
-wrangler secret put NIFTYPM_CLIENT_SECRET
+wrangler secret put NIFTYPM_API_TOKEN
 wrangler secret put MCP_AUTH_SECRET
+# OAuth fallback (only if not using an API token):
+# wrangler secret put NIFTYPM_CLIENT_ID
+# wrangler secret put NIFTYPM_CLIENT_SECRET
+# wrangler secret put NIFTYPM_ACCESS_TOKEN
+# wrangler secret put NIFTYPM_REFRESH_TOKEN
 ```
 
 ## Claude Desktop example
@@ -225,14 +241,11 @@ wrangler secret put MCP_AUTH_SECRET
 ```json
 {
   "mcpServers": {
-    "niftypm": {
+    "niftypm-local-mcp": {
       "command": "bun",
       "args": ["run", "/absolute/path/to/niftypm-mcp/src/index.ts"],
       "env": {
-        "NIFTYPM_CLIENT_ID": "your_client_id_here",
-        "NIFTYPM_CLIENT_SECRET": "your_client_secret_here",
-        "NIFTYPM_ACCESS_TOKEN": "your_access_token_here",
-        "NIFTYPM_REFRESH_TOKEN": "your_refresh_token_here"
+        "NIFTYPM_API_TOKEN": "nft_user_your_token_here"
       }
     }
   }
@@ -244,17 +257,44 @@ wrangler secret put MCP_AUTH_SECRET
 ```json
 {
   "mcp": {
-    "niftypm": {
+    "niftypm-local-mcp": {
       "type": "local",
       "command": ["bun", "run", "/absolute/path/to/niftypm-mcp/src/index.ts"],
       "environment": {
-        "NIFTYPM_CLIENT_ID": "{file:/absolute/path/to/niftypm-mcp/.secrets/client_id}",
-        "NIFTYPM_CLIENT_SECRET": "{file:/absolute/path/to/niftypm-mcp/.secrets/client_secret}",
-        "NIFTYPM_ACCESS_TOKEN": "{file:/absolute/path/to/niftypm-mcp/.secrets/access_token}",
-        "NIFTYPM_REFRESH_TOKEN": "{file:/absolute/path/to/niftypm-mcp/.secrets/refresh_token}"
+        "NIFTYPM_API_TOKEN": "{file:/absolute/path/to/niftypm-mcp/.secrets/api_token}"
       },
       "enabled": true
     }
   }
 }
 ```
+
+## Devin CLI file-secret example
+
+```jsonc
+// ~/.config/devin/mcp_config.json
+{
+  "mcpServers": {
+    "niftypm-local-mcp": {
+      "command": "bun",
+      "args": ["run", "/absolute/path/to/niftypm-mcp/src/index.ts"],
+      "env": {
+        "NIFTYPM_API_TOKEN": "${file:/absolute/path/to/niftypm-mcp/.secrets/api_token}",
+      },
+    },
+  },
+}
+```
+
+## OAuth fallback examples
+
+If you cannot use an API token and must use the OAuth flow, use these env vars instead of `NIFTYPM_API_TOKEN`:
+
+```dotenv
+NIFTYPM_CLIENT_ID=your_client_id_here
+NIFTYPM_CLIENT_SECRET=your_client_secret_here
+NIFTYPM_ACCESS_TOKEN=your_access_token_here
+NIFTYPM_REFRESH_TOKEN=your_refresh_token_here
+```
+
+The same MCP client config applies — just swap the `env` block to include the four OAuth variables instead of `NIFTYPM_API_TOKEN`.

@@ -30,6 +30,23 @@ export class NiftyPMClient {
   }
 
   /**
+   * Whether the client is using the personal access token (primary
+   * mode) rather than the OAuth access token (fallback mode).
+   */
+  private get isApiTokenMode(): boolean {
+    return !!this.config.apiToken;
+  }
+
+  /**
+   * The Bearer credential to send on authenticated requests.
+   * Prefers the personal access token (primary) and falls back to
+   * the OAuth access token when no API token is configured.
+   */
+  private activeToken(): string {
+    return this.config.apiToken || this.config.accessToken;
+  }
+
+  /**
    * Generate Basic authentication header for token endpoints
    */
   getBasicAuthHeader(): string {
@@ -108,7 +125,7 @@ export class NiftyPMClient {
     const headers = new Headers(options.headers);
     const hasCustomAuth = headers.has("Authorization");
     if (!hasCustomAuth) {
-      headers.set("Authorization", `Bearer ${this.config.accessToken}`);
+      headers.set("Authorization", `Bearer ${this.activeToken()}`);
     }
     if (!headers.has("Content-Type")) {
       headers.set("Content-Type", "application/json");
@@ -120,10 +137,20 @@ export class NiftyPMClient {
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await fetch(url, requestInit);
 
-      // On first 401 with default Bearer auth, refresh and retry.
+      // On first 401 with default Bearer auth, recover — but only in
+      // OAuth mode, where a refresh-token exchange can produce a fresh
+      // access token. In API-token mode there is no refresh mechanism,
+      // so surface an actionable error instead.
       if (response.status === 401 && !hasCustomAuth && attempt === 0) {
+        if (this.isApiTokenMode) {
+          throw new Error(
+            `NiftyPM API error (401): NIFTYPM_API_TOKEN was rejected. ` +
+              `Rotate or revoke it from NiftyPM Settings → MCP & AI assistants → ` +
+              `API tokens, then update NIFTYPM_API_TOKEN.`,
+          );
+        }
         await this.refreshAccessToken();
-        headers.set("Authorization", `Bearer ${this.config.accessToken}`);
+        headers.set("Authorization", `Bearer ${this.activeToken()}`);
         continue; // retry with fresh token
       }
 
@@ -206,7 +233,7 @@ export class NiftyPMClient {
     }
 
     const headers = new Headers({
-      Authorization: `Bearer ${this.config.accessToken}`,
+      Authorization: `Bearer ${this.activeToken()}`,
     });
 
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -217,8 +244,15 @@ export class NiftyPMClient {
       });
 
       if (response.status === 401 && attempt === 0) {
+        if (this.isApiTokenMode) {
+          throw new Error(
+            `NiftyPM API error (401): NIFTYPM_API_TOKEN was rejected. ` +
+              `Rotate or revoke it from NiftyPM Settings → MCP & AI assistants → ` +
+              `API tokens, then update NIFTYPM_API_TOKEN.`,
+          );
+        }
         await this.refreshAccessToken();
-        headers.set("Authorization", `Bearer ${this.config.accessToken}`);
+        headers.set("Authorization", `Bearer ${this.activeToken()}`);
         continue;
       }
 
@@ -288,8 +322,9 @@ export class NiftyPMClient {
   // See docs/api/checklist-api-discovery.md.
 
   private internalAuthHeaders(): HeadersInit {
-    // Use teamToken if available; fall back to accessToken for reads.
-    const token = this.config.teamToken || this.config.accessToken;
+    // Use teamToken if available; fall back to the active token
+    // (apiToken primary, accessToken fallback) for reads.
+    const token = this.config.teamToken || this.activeToken();
     return { Authorization: `Bearer ${token}` };
   }
 

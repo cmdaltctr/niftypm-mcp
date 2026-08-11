@@ -15,6 +15,13 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 export interface NiftyPMConfig {
+  /**
+   * NiftyPM personal access token (nft_user_…). Primary credential.
+   * When set, the client uses it as the Bearer token and skips the
+   * OAuth flow entirely. Obtained from NiftyPM Settings → MCP & AI
+   * assistants → API tokens.
+   */
+  apiToken: string;
   clientId: string;
   clientSecret: string;
   accessToken: string;
@@ -58,10 +65,7 @@ function readSecretFile(name: string): string {
   try {
     // Resolve relative to the project root.
     // __dirname equivalent for ES modules.
-    const projectRoot = resolve(
-      new URL(".", import.meta.url).pathname,
-      "..",
-    );
+    const projectRoot = resolve(new URL(".", import.meta.url).pathname, "..");
     return readFileSync(resolve(projectRoot, ".secrets", name), "utf-8").trim();
   } catch {
     return "";
@@ -85,11 +89,7 @@ function loadCredential(envKey: string, secretFileName: string): string {
  * No-op if the file is missing (e.g. on Cloudflare Workers).
  */
 function loadEnvFile(): void {
-  const envPath = resolve(
-    new URL(".", import.meta.url).pathname,
-    "..",
-    ".env",
-  );
+  const envPath = resolve(new URL(".", import.meta.url).pathname, "..", ".env");
   if (!existsSync(envPath)) return;
 
   const content = readFileSync(envPath, "utf-8");
@@ -122,7 +122,10 @@ function loadEnvFile(): void {
 function parseDisabledTools(): string[] {
   const raw = process.env.DISABLED_TOOLS || "";
   if (!raw.trim()) return [];
-  return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }
 
 /**
@@ -135,6 +138,10 @@ export function loadConfig(): NiftyPMConfig {
   // Existing process.env values are preserved (real env wins).
   loadEnvFile();
 
+  // Personal access token (nft_user_…). Primary credential — when
+  // present, the OAuth quartet below is ignored. Obtained from
+  // NiftyPM Settings → MCP & AI assistants → API tokens.
+  const apiToken = loadCredential("NIFTYPM_API_TOKEN", "api_token");
   const clientId = loadCredential("NIFTYPM_CLIENT_ID", "client_id");
   const clientSecret = loadCredential("NIFTYPM_CLIENT_SECRET", "client_secret");
   const accessToken = loadCredential("NIFTYPM_ACCESS_TOKEN", "access_token");
@@ -145,6 +152,7 @@ export function loadConfig(): NiftyPMConfig {
   const teamToken = loadCredential("NIFTYPM_TEAM_TOKEN", "team_token");
 
   return {
+    apiToken,
     clientId,
     clientSecret,
     accessToken,
@@ -181,22 +189,44 @@ export function loadConfig(): NiftyPMConfig {
 }
 
 /**
- * Validate that required configuration is present
+ * Validate that required configuration is present.
+ *
+ * Two credential sets are accepted:
+ *   1. NIFTYPM_API_TOKEN (primary, recommended) — a personal access
+ *      token from NiftyPM Settings → MCP & AI assistants → API tokens.
+ *      When present, the OAuth quartet is not required.
+ *   2. The OAuth quartet (CLIENT_ID, CLIENT_SECRET, ACCESS_TOKEN,
+ *      REFRESH_TOKEN) — fallback when no API token is configured.
+ *
+ * Throws listing the missing credentials of whichever set the user
+ * appears to be targeting, naming NIFTYPM_API_TOKEN as the
+ * recommended option.
  */
 export function validateConfig(config: NiftyPMConfig): void {
+  // Primary: API token alone is sufficient.
+  if (config.apiToken) {
+    return;
+  }
+
+  // Fallback: require the full OAuth quartet.
   const missing: string[] = [];
-  
+
   if (!config.accessToken) missing.push("NIFTYPM_ACCESS_TOKEN");
   if (!config.clientId) missing.push("NIFTYPM_CLIENT_ID");
   if (!config.clientSecret) missing.push("NIFTYPM_CLIENT_SECRET");
   // Refresh tokens are required at startup so the server can recover
   // from expired access tokens instead of running in degraded mode.
   if (!config.refreshToken) missing.push("NIFTYPM_REFRESH_TOKEN");
-  
+
   if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(", ")}\n` +
-      "Please copy .env.example to .env and fill in your credentials."
-    );
+    // If the user supplied none of the OAuth vars, they likely intend
+    // the API-token path — point them there first.
+    const oauthAttempted =
+      config.accessToken || config.clientId || config.clientSecret || config.refreshToken;
+    const hint = oauthAttempted
+      ? "Please copy .env.example to .env and fill in your credentials."
+      : "Set NIFTYPM_API_TOKEN (recommended) — generate one from NiftyPM " +
+        "Settings → MCP & AI assistants → API tokens — or fill in the OAuth credentials in .env.";
+    throw new Error(`Missing required environment variables: ${missing.join(", ")}\n` + hint);
   }
 }

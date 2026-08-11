@@ -37,6 +37,7 @@ const allToolsEnabled: NiftyPMConfig["enabledTools"] = {
 
 function createConfig(overrides: Partial<NiftyPMConfig> = {}): NiftyPMConfig {
   return {
+    apiToken: "",
     clientId: "valid-client",
     clientSecret: "valid-secret",
     accessToken: "valid-token",
@@ -125,7 +126,7 @@ describe("loadConfig", () => {
     expect(config.enabledTools.tasks).toBe(true);
     expect(config.enabledTools.subTeams).toBe(true);
     expect(Object.values(config.enabledTools)).toEqual(
-      Array(Object.keys(config.enabledTools).length).fill(true)
+      Array(Object.keys(config.enabledTools).length).fill(true),
     );
   });
 
@@ -165,7 +166,7 @@ describe("validateConfig", () => {
     });
 
     expect(() => validateConfig(config)).toThrow(
-      "Missing required environment variables: NIFTYPM_ACCESS_TOKEN, NIFTYPM_CLIENT_ID, NIFTYPM_CLIENT_SECRET, NIFTYPM_REFRESH_TOKEN"
+      "Missing required environment variables: NIFTYPM_ACCESS_TOKEN, NIFTYPM_CLIENT_ID, NIFTYPM_CLIENT_SECRET, NIFTYPM_REFRESH_TOKEN",
     );
   });
 
@@ -177,7 +178,7 @@ describe("validateConfig", () => {
     });
 
     expect(() => validateConfig(config)).toThrow(
-      "Please copy .env.example to .env and fill in your credentials"
+      "Please copy .env.example to .env and fill in your credentials",
     );
   });
 
@@ -190,19 +191,13 @@ describe("validateConfig", () => {
   it("should parse DISABLED_TOOLS as comma-separated list", () => {
     process.env.DISABLED_TOOLS = "niftypm_delete_document,niftypm_archive_task";
     const config = loadConfig();
-    expect(config.disabledTools).toEqual([
-      "niftypm_delete_document",
-      "niftypm_archive_task",
-    ]);
+    expect(config.disabledTools).toEqual(["niftypm_delete_document", "niftypm_archive_task"]);
   });
 
   it("should trim whitespace from DISABLED_TOOLS entries", () => {
     process.env.DISABLED_TOOLS = " niftypm_delete_document , niftypm_archive_task ";
     const config = loadConfig();
-    expect(config.disabledTools).toEqual([
-      "niftypm_delete_document",
-      "niftypm_archive_task",
-    ]);
+    expect(config.disabledTools).toEqual(["niftypm_delete_document", "niftypm_archive_task"]);
   });
 
   it("should return empty array for empty DISABLED_TOOLS string", () => {
@@ -215,6 +210,65 @@ describe("validateConfig", () => {
     process.env.DISABLED_TOOLS = "   ";
     const config = loadConfig();
     expect(config.disabledTools).toEqual([]);
+  });
+});
+
+describe("validateConfig — API token (primary) vs OAuth (fallback)", () => {
+  it("should pass when only NIFTYPM_API_TOKEN is set (no OAuth creds)", () => {
+    const config = createConfig({
+      apiToken: "nft_user_test_token",
+      clientId: "",
+      clientSecret: "",
+      accessToken: "",
+      refreshToken: "",
+    });
+
+    expect(() => validateConfig(config)).not.toThrow();
+  });
+
+  it("should pass when both API token and OAuth creds are set (API token wins)", () => {
+    const config = createConfig({ apiToken: "nft_user_test_token" });
+
+    expect(() => validateConfig(config)).not.toThrow();
+  });
+
+  it("should throw when neither API token nor OAuth creds are set", () => {
+    const config = createConfig({
+      apiToken: "",
+      clientId: "",
+      clientSecret: "",
+      accessToken: "",
+      refreshToken: "",
+    });
+
+    expect(() => validateConfig(config)).toThrow(
+      "Missing required environment variables: NIFTYPM_ACCESS_TOKEN, NIFTYPM_CLIENT_ID, NIFTYPM_CLIENT_SECRET, NIFTYPM_REFRESH_TOKEN",
+    );
+  });
+
+  it("should point to NIFTYPM_API_TOKEN in the error when no OAuth vars are attempted", () => {
+    const config = createConfig({
+      apiToken: "",
+      clientId: "",
+      clientSecret: "",
+      accessToken: "",
+      refreshToken: "",
+    });
+
+    expect(() => validateConfig(config)).toThrow("NIFTYPM_API_TOKEN");
+  });
+
+  it("should keep the .env hint when some OAuth vars are set but not all", () => {
+    const config = createConfig({
+      apiToken: "",
+      clientSecret: "",
+      accessToken: "",
+      refreshToken: "",
+    });
+
+    expect(() => validateConfig(config)).toThrow(
+      "Please copy .env.example to .env and fill in your credentials",
+    );
   });
 });
 
@@ -243,9 +297,7 @@ describe("loadEnvFile (auto-loaded .env)", () => {
 
   it("should set env vars from .env when present and not already set", () => {
     vi.mocked(existsSync).mockReturnValue(true);
-    vi.mocked(readFileSync).mockReturnValue(
-      "ENABLE_TASKS=false\nENABLE_MESSAGES=true\n" as any,
-    );
+    vi.mocked(readFileSync).mockReturnValue("ENABLE_TASKS=false\nENABLE_MESSAGES=true\n" as any);
     delete process.env.ENABLE_TASKS;
     delete process.env.ENABLE_MESSAGES;
     const config = loadConfig();
@@ -274,14 +326,10 @@ describe("loadEnvFile (auto-loaded .env)", () => {
 
   it("should strip surrounding quotes from values", () => {
     vi.mocked(existsSync).mockReturnValue(true);
-    vi.mocked(readFileSync).mockReturnValue(
-      'NIFTYPM_CLIENT_ID="abc123"\n',
-    );
+    vi.mocked(readFileSync).mockReturnValue('NIFTYPM_CLIENT_ID="abc123"\n');
     delete process.env.NIFTYPM_CLIENT_ID;
     // .secrets/ mock will throw, so empty client_id comes from .env fallback
-    vi.mocked(readFileSync).mockImplementationOnce(() =>
-      'NIFTYPM_CLIENT_ID="abc123"\n' as any,
-    );
+    vi.mocked(readFileSync).mockImplementationOnce(() => 'NIFTYPM_CLIENT_ID="abc123"\n' as any);
     const config = loadConfig();
     expect(config.clientId).toBe("abc123");
   });

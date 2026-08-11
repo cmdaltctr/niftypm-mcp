@@ -32,6 +32,7 @@ const allToolsEnabled: NiftyPMConfig["enabledTools"] = {
 
 function createMockConfig(overrides: Partial<NiftyPMConfig> = {}): NiftyPMConfig {
   return {
+    apiToken: "",
     clientId: "test-client-id",
     clientSecret: "test-client-secret",
     accessToken: "test-access-token",
@@ -67,7 +68,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.request("/api/v1.0/tasks");
@@ -83,7 +84,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.request("/api/v1.0/tasks");
@@ -99,7 +100,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.request("/api/v1.0/tasks");
@@ -111,45 +112,46 @@ describe("NiftyPMClient", () => {
 
     it("should throw on non-OK response with status code and body", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response("Not Found", { status: 404, statusText: "Not Found" })
+        new Response("Not Found", { status: 404, statusText: "Not Found" }),
       );
 
       await expect(client.request("/api/v1.0/tasks")).rejects.toThrow(
-        "NiftyPM API error (404): Not Found"
+        "NiftyPM API error (404): Not Found",
       );
     });
 
     it("should throw on 500 server error", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response("Internal Server Error", { status: 500, statusText: "Internal Server Error" })
+        new Response("Internal Server Error", { status: 500, statusText: "Internal Server Error" }),
       );
 
       await expect(client.request("/api/v1.0/tasks")).rejects.toThrow(
-        "NiftyPM API error (500): Internal Server Error"
+        "NiftyPM API error (500): Internal Server Error",
       );
     });
 
     it("should throw on 401 unauthorized (refresh attempt fails too)", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
+        new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
       );
 
       await expect(client.request("/api/v1.0/tasks")).rejects.toThrow(
-        "Token refresh failed (401): Unauthorized"
+        "Token refresh failed (401): Unauthorized",
       );
     });
 
     it("should refresh the access token on 401 and retry once", async () => {
       const mockResponse = { data: "retry-success" };
-      const fetchMock = vi.spyOn(globalThis, "fetch")
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
         )
         .mockResolvedValueOnce(
           jsonResponse({
             access_token: "new-access-token",
             refresh_token: "new-refresh-token",
-          })
+          }),
         )
         .mockResolvedValueOnce(jsonResponse(mockResponse));
 
@@ -169,34 +171,103 @@ describe("NiftyPMClient", () => {
     });
 
     it("should throw the refresh error when token refresh returns non-2xx", async () => {
-      const fetchMock = vi.spyOn(globalThis, "fetch")
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
         )
         .mockResolvedValueOnce(
-          jsonResponse({ error: "invalid_grant" }, { status: 400, statusText: "Bad Request" })
+          jsonResponse({ error: "invalid_grant" }, { status: 400, statusText: "Bad Request" }),
         );
 
       await expect(client.request("/api/v1.0/tasks")).rejects.toThrow(
-        "Token refresh failed (400): invalid_grant"
+        "Token refresh failed (400): invalid_grant",
       );
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it("should not refresh on 401 when caller supplies Authorization header", async () => {
-      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-        new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
-      );
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
+        );
 
       await expect(
         client.request("/api/v1.0/tasks", {
           headers: { Authorization: "Basic custom-token" },
-        })
+        }),
       ).rejects.toThrow("NiftyPM API error (401): Unauthorized");
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const headers = fetchMock.mock.calls[0][1]?.headers as Headers;
       expect(headers.get("Authorization")).toBe("Basic custom-token");
+    });
+
+    // ── API token (primary) mode ───────────────────────────────────
+
+    it("should use apiToken as the Bearer credential when present", async () => {
+      const apiTokenClient = new NiftyPMClient(
+        createMockConfig({ apiToken: "nft_user_test_token" }),
+      );
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      await apiTokenClient.request("/api/v1.0/tasks");
+
+      const callArgs = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+      const headers = callArgs[1].headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer nft_user_test_token");
+    });
+
+    it("should NOT refresh on 401 in API-token mode and throw an actionable error", async () => {
+      const apiTokenClient = new NiftyPMClient(
+        createMockConfig({ apiToken: "nft_user_test_token" }),
+      );
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValue(
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
+        );
+
+      await expect(apiTokenClient.request("/api/v1.0/tasks")).rejects.toThrow(
+        "NIFTYPM_API_TOKEN was rejected",
+      );
+
+      // Exactly one fetch — no refresh attempt was made.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const headers = fetchMock.mock.calls[0][1]?.headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer nft_user_test_token");
+    });
+
+    it("should still refresh on 401 in OAuth fallback mode (apiToken absent)", async () => {
+      // Explicit regression guard: apiToken empty → OAuth refresh path.
+      const oauthClient = new NiftyPMClient(createMockConfig({ apiToken: "" }));
+      const mockResponse = { data: "retry-success" };
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
+        )
+        .mockResolvedValueOnce(
+          jsonResponse({
+            access_token: "new-access-token",
+            refresh_token: "new-refresh-token",
+          }),
+        )
+        .mockResolvedValueOnce(jsonResponse(mockResponse));
+
+      const result = await oauthClient.request("/api/v1.0/tasks");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock.mock.calls[1][0]).toBe("https://openapi.niftypm.com/oauth/token");
+      const retryHeaders = fetchMock.mock.calls[2][1]?.headers as Headers;
+      expect(retryHeaders.get("Authorization")).toBe("Bearer new-access-token");
     });
   });
 
@@ -207,7 +278,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const result = await client.get("/api/v1.0/tasks");
@@ -222,7 +293,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify([]), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.get("/api/v1.0/tasks", {
@@ -243,7 +314,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify([]), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.get("/api/v1.0/tasks", {
@@ -267,7 +338,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const body = { name: "New Task", task_group_id: "tg-1" };
@@ -285,7 +356,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const result = await client.post("/api/v1.0/tasks/1/archive");
@@ -304,7 +375,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const formData = new FormData();
@@ -327,15 +398,16 @@ describe("NiftyPMClient", () => {
 
     it("should refresh the access token on multipart 401 and retry once", async () => {
       const mockResponse = { files: [{ id: "file-1" }] };
-      const fetchMock = vi.spyOn(globalThis, "fetch")
+      const fetchMock = vi
+        .spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(
-          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" })
+          new Response("Unauthorized", { status: 401, statusText: "Unauthorized" }),
         )
         .mockResolvedValueOnce(
           jsonResponse({
             access_token: "new-upload-token",
             refresh_token: "new-upload-refresh-token",
-          })
+          }),
         )
         .mockResolvedValueOnce(jsonResponse(mockResponse));
 
@@ -362,7 +434,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const body = { name: "Updated Task" };
@@ -380,7 +452,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       await client.put("/api/v1.0/tasks/1");
@@ -398,7 +470,7 @@ describe("NiftyPMClient", () => {
         new Response(JSON.stringify(mockResponse), {
           status: 200,
           headers: { "Content-Type": "application/json" },
-        })
+        }),
       );
 
       const result = await client.delete("/api/v1.0/tasks/1");

@@ -11,7 +11,7 @@ It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones,
 - Local auto-sync: automatically updates `niftypm/*.json` files after mutations.
 - Optional HTTP stream transport for local testing.
 - Cloudflare Workers entry point for hosted/remote use.
-- OAuth bearer-token API client with in-memory token refresh on `401`.
+- API-token-first auth: NiftyPM personal access token (`nft_user_…`) as primary, OAuth as fallback.
 - Zod-validated tool parameters.
 - Per-domain tool toggles through `ENABLE_*` environment variables, plus
   per-tool granularity via `DISABLED_TOOLS`.
@@ -20,11 +20,11 @@ It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones,
 
 - Node.js 20+
 - Bun 1.1+
-- NiftyPM OAuth credentials:
-  - `NIFTYPM_CLIENT_ID`
-  - `NIFTYPM_CLIENT_SECRET`
-  - `NIFTYPM_ACCESS_TOKEN`
-  - `NIFTYPM_REFRESH_TOKEN`
+- A NiftyPM **personal access token** (`nft_user_…`) — the recommended credential.
+  See [API token setup](#api-token-recommended) below.
+- _Optional_ — OAuth credentials (`NIFTYPM_CLIENT_ID`, `NIFTYPM_CLIENT_SECRET`,
+  `NIFTYPM_ACCESS_TOKEN`, `NIFTYPM_REFRESH_TOKEN`) as a fallback when no API
+  token is set.
 
 ## Install
 
@@ -41,7 +41,7 @@ bun install
 The easiest setup path is the static configurator at [`ui/index.html`](ui/index.html):
 
 1. Open `ui/index.html` directly in a browser.
-2. Paste your OAuth credentials.
+2. Paste your API token (recommended) or OAuth credentials.
 3. Switch between **Simple** (domain-level toggles) and **Advanced** (per-tool toggle table) tabs.
 4. Click **Download `.env`**.
 5. Rename it to `.env`, place it in the project root, and restart your MCP client.
@@ -53,13 +53,38 @@ The **Simple** tab shows 21 domain-level switches (core + extended + checklists)
 within an enabled domain, down to a single unwanted operation. The
 generated `.env` is auto-loaded on server start.
 
+### API token (recommended)
+
+The simplest and most stable auth path is a NiftyPM **personal access token** (`nft_user_…`). One token replaces the entire OAuth credential set and never needs a refresh dance.
+
+1. In NiftyPM, open **Settings → MCP & AI assistants → API tokens**.
+2. Create a token with **Full access** (or **Custom** with the write actions you need — this MCP creates/updates/deletes across domains, so **Read-only will reject writes**).
+3. Set an expiry of up to 365 days. Shorter lifetimes are safer; you can rotate or revoke anytime from the same UI (revocation takes effect within ~1 minute).
+4. Put the token in your `.env`:
+
+```dotenv
+NIFTYPM_API_TOKEN=nft_user_your_token_here
+```
+
+When `NIFTYPM_API_TOKEN` is set, the OAuth credentials below are ignored. On a `401` the server surfaces an actionable error pointing you back to the token-management UI — there is no refresh mechanism for personal tokens, and none is needed.
+
 ### Manual `.env` setup
 
-You can also copy the example env file and fill in your OAuth credentials by hand:
+Copy the example env file and fill in your API token (or OAuth credentials as a fallback):
 
 ```bash
 cp .env.example .env
 ```
+
+**API token (recommended):**
+
+```dotenv
+NIFTYPM_API_TOKEN=nft_user_your_token_here
+```
+
+When `NIFTYPM_API_TOKEN` is set, all OAuth variables are ignored.
+
+**OAuth (fallback):**
 
 ```dotenv
 NIFTYPM_CLIENT_ID=your_client_id_here
@@ -68,9 +93,9 @@ NIFTYPM_ACCESS_TOKEN=your_access_token_here
 NIFTYPM_REFRESH_TOKEN=your_refresh_token_here
 ```
 
-`NIFTYPM_REFRESH_TOKEN` is the OAuth refresh token for automatic `401` recovery. It is required for stable connections — without it, every access-token expiry forces manual re-authorisation.
+`NIFTYPM_REFRESH_TOKEN` is only needed in OAuth fallback mode for automatic `401` recovery. With an API token, there is no refresh mechanism — on `401` the server surfaces an actionable error pointing you back to the token-management UI.
 
-### How to obtain the refresh token
+### How to obtain the OAuth refresh token
 
 Use NiftyPM's OAuth authorisation-code flow:
 
@@ -99,10 +124,11 @@ The response includes both `access_token` and `refresh_token`. Store them as `NI
 For OpenCode or local setups, you may store credentials in `.secrets/` files instead of `.env`:
 
 ```text
-.secrets/client_id
-.secrets/client_secret
-.secrets/access_token
-.secrets/refresh_token
+.secrets/api_token        (recommended — primary credential, see below)
+.secrets/client_id        (fallback — only used when api_token is absent)
+.secrets/client_secret    (fallback)
+.secrets/access_token     (fallback)
+.secrets/refresh_token    (fallback)
 .secrets/team_token       (optional — needed for checklist write operations)
 ```
 
@@ -163,6 +189,16 @@ bun run cf:deploy
 ```
 
 Worker access is protected by `MCP_AUTH_SECRET`. Store production values with `wrangler secret put`.
+
+```bash
+wrangler secret put NIFTYPM_API_TOKEN       # recommended
+wrangler secret put MCP_AUTH_SECRET
+# OAuth fallback (only if not using an API token):
+# wrangler secret put NIFTYPM_CLIENT_ID
+# wrangler secret put NIFTYPM_CLIENT_SECRET
+# wrangler secret put NIFTYPM_ACCESS_TOKEN
+# wrangler secret put NIFTYPM_REFRESH_TOKEN
+```
 
 ## Tool domains
 
