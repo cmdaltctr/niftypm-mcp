@@ -45,7 +45,7 @@ export interface BundleTask {
   dependency?: string;
   labels?: string[];
   description?: string;
-  story_points?: number | null;
+  story_points?: number | string | null;
   due_date?: string | null;
   start_date?: string | null;
   total_subtasks?: number;
@@ -117,7 +117,7 @@ export interface ProjectJsonTask {
   milestone: string | null;
   description: string;
   labels: string[];
-  story_points: number | null;
+  story_points: number | string | null;
   due_date: string | null;
   start_date: string | null;
   dependency: string | null;

@@ -195,6 +195,7 @@ describe("LocalSync.discover", () => {
     testDir = join(tmpdir(), `niftypm-test-${Date.now()}`);
     mkdirSync(join(testDir, "niftypm"), { recursive: true });
     vi.stubEnv("PWD", testDir);
+    vi.stubEnv("NIFTYPM_AUTO_SYNC", "true");
   });
 
   afterEach(() => {

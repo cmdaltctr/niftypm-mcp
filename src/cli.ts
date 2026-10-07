@@ -6,14 +6,16 @@
  */
 
 import { z } from "zod";
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { loadConfig, validateConfig } from "./config.js";
 import { NiftyPMClient } from "./client.js";
 import { LocalSync } from "./local-sync.js";
 import { buildProjectJson } from "./reverse-sync.js";
-import type { Bundle } from "./reverse-sync.js";
+import type { BundleProject } from "./reverse-sync.js";
+import { fetchCollection, fetchProject, fetchBundle, mergeTasks, SyncError, syncFailure } from "./sync-data.js";
+import { readMirror, withMirror, writeMirror } from "./mirror-file.js";
 import {
   registerFilesTools,
   registerLabelsTools,
@@ -144,171 +146,62 @@ function prompt(question: string): Promise<string> {
 
 // ── Init command ────────────────────────────────────────────────────
 
-async function cmdInit(client: NiftyPMClient): Promise<void> {
-  const projects = await client.get<any[]>("/api/v1.0/projects");
-  if (!Array.isArray(projects) || projects.length === 0) {
-    console.error("No accessible NiftyPM projects found.");
-    process.exit(1);
-  }
+async function refreshMirror(client: NiftyPMClient, filepath: string, allowEmpty: boolean, selected?: BundleProject): Promise<void> {
+  await withMirror(filepath, async () => {
+    const previous = readMirror(filepath, selected?.id);
+    if (!previous && !selected) throw new SyncError('No local mirror found. Run "niftypm-mcp init" first.');
+    const project = selected ?? await fetchProject(client, previous!.data.meta.niftypm_project_id!);
+    const fresh = buildProjectJson(await fetchBundle(client, project));
+    const result = previous ? {
+      ...previous.data, ...fresh,
+      meta: { ...previous.data.meta, ...fresh.meta, created: previous.data.meta.created },
+      project: {
+        ...previous.data.project, ...fresh.project,
+        portfolio: project.portfolio ?? previous.data.project.portfolio,
+        portfolio_id: project.portfolio_id ?? previous.data.project.portfolio_id,
+        repo: project.repo ?? previous.data.project.repo,
+      },
+      tasks: mergeTasks(previous.data.tasks, fresh.tasks),
+    } : fresh;
+    writeMirror(filepath, result, previous, allowEmpty);
+    console.error(`SYNCED ${filepath}: ${result.tasks.length} tasks, ${result.labels.length} labels, ${result.milestones.length} milestones, ${result.task_lists.length} task lists`);
+  });
+}
 
+async function cmdInit(client: NiftyPMClient, allowEmpty: boolean): Promise<void> {
+  const projects = await fetchCollection<BundleProject>(client, "projects");
+  if (!projects.length) throw new SyncError("No accessible NiftyPM projects found.");
   console.error("\nAvailable NiftyPM projects:\n");
-  projects.forEach((p, i) => {
-    console.error(`  ${i + 1}. ${p.name || "Unnamed"} (nice_id: ${p.nice_id || "—"}, id: ${p.id})`);
-  });
-
-  const answer = await prompt(`\nSelect a project (1-${projects.length}): `);
-  const idx = parseInt(answer, 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= projects.length) {
-    console.error("Invalid selection.");
-    process.exit(1);
-  }
-
+  projects.forEach((p, i) => console.error(`  ${i + 1}. ${p.name || "Unnamed"} (id: ${p.id})`));
+  const idx = Number(await prompt(`\nSelect a project (1-${projects.length}): `)) - 1;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= projects.length) throw new SyncError("Invalid project selection.");
   const project = projects[idx];
-  const projectId = project.id;
-
-  console.error(`\nFetching data for "${project.name}"...`);
-
-  const [labels, taskgroups, milestonesRegular, milestonesList, tasks, members] = await Promise.all(
-    [
-      client.get("/api/v1.0/labels", { project_id: projectId }),
-      client.get("/api/v1.0/taskgroups", { project_id: projectId }),
-      client.get("/api/v1.0/milestones", { project_id: projectId }),
-      client.get("/api/v1.0/milestones", { project_id: projectId, is_list: "true" }),
-      client.get("/api/v1.0/tasks", { project_id: projectId }),
-      client.get("/api/v1.0/members", { project_id: projectId }),
-    ],
-  );
-
-  // Merge milestones and deduplicate by id
-  const allMilestones = [
-    ...(Array.isArray(milestonesRegular) ? milestonesRegular : []),
-    ...(Array.isArray(milestonesList) ? milestonesList : []),
-  ];
-  const seenMs = new Set<string>();
-  const dedupedMilestones = allMilestones.filter((ms: any) => {
-    if (!ms?.id || seenMs.has(ms.id)) return false;
-    seenMs.add(ms.id);
-    return true;
-  });
-
-  const bundle: Bundle = {
-    project: { ...project, portfolio: project.portfolio || "", portfolio_id: project.portfolio_id },
-    labels: Array.isArray(labels) ? labels : [],
-    taskgroups: Array.isArray(taskgroups) ? taskgroups : [],
-    milestones: dedupedMilestones,
-    tasks: Array.isArray(tasks) ? tasks : [],
-    members: Array.isArray(members) ? members : [],
-  };
-
-  const result = buildProjectJson(bundle);
-
-  const niftypmDir = join(process.cwd(), "niftypm");
-  if (!existsSync(niftypmDir)) {
-    mkdirSync(niftypmDir, { recursive: true });
-  }
-
-  const slug = (project.name || "project")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  const filepath = join(niftypmDir, `${slug}.json`);
-
+  const directory = join(process.cwd(), "niftypm");
+  const slug = (project.name || "project").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
+  const filepath = join(directory, `${slug}.json`);
   if (existsSync(filepath)) {
     const confirm = await prompt(`File ${filepath} already exists. Overwrite? (y/N): `);
-    if (confirm.toLowerCase() !== "y") {
-      console.error("Aborted.");
-      process.exit(0);
-    }
+    if (confirm.toLowerCase() !== "y") { console.error("Aborted."); return; }
   }
-
-  writeFileSync(filepath, JSON.stringify(result, null, 2) + "\n", "utf-8");
-
-  const completed = result.tasks.filter((t) => t.completed).length;
-  console.error(
-    `\nWROTE ${filepath}\n  ${result.tasks.length} tasks (${completed} completed),\n  ${result.labels.length} labels,\n  ${result.milestones.length} milestones,\n  ${result.task_lists.length} task lists`,
-  );
+  mkdirSync(directory, { recursive: true });
+  await refreshMirror(client, filepath, allowEmpty, project);
 }
 
 // ── Sync command ────────────────────────────────────────────────────
 
-async function cmdSync(client: NiftyPMClient): Promise<void> {
-  const niftypmDir = join(process.cwd(), "niftypm");
-  if (!existsSync(niftypmDir)) {
-    console.error('No niftypm/ directory found. Run "niftypm-mcp init" first.');
-    process.exit(1);
-  }
-
-  const files = readdirSync(niftypmDir).filter((f) => f.endsWith(".json"));
-  if (files.length === 0) {
-    console.error('No JSON files in niftypm/. Run "niftypm-mcp init" first.');
-    process.exit(1);
-  }
-
-  let filepath: string;
-  if (files.length === 1) {
-    filepath = join(niftypmDir, files[0]);
-  } else {
+async function cmdSync(client: NiftyPMClient, allowEmpty: boolean): Promise<void> {
+  const directory = join(process.cwd(), "niftypm");
+  if (!existsSync(directory)) throw new SyncError('No niftypm/ directory found. Run "niftypm-mcp init" first.');
+  const files = readdirSync(directory).filter((file) => file.endsWith(".json"));
+  if (!files.length) throw new SyncError('No JSON files found. Run "niftypm-mcp init" first.');
+  let idx = 0;
+  if (files.length > 1) {
     console.error("\nMultiple local JSON files found:\n");
-    files.forEach((f, i) => console.error(`  ${i + 1}. ${f}`));
-    const answer = await prompt(`\nSelect a file (1-${files.length}): `);
-    const idx = parseInt(answer, 10) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= files.length) {
-      console.error("Invalid selection.");
-      process.exit(1);
-    }
-    filepath = join(niftypmDir, files[idx]);
+    files.forEach((file, i) => console.error(`  ${i + 1}. ${file}`));
+    idx = Number(await prompt(`\nSelect a file (1-${files.length}): `)) - 1;
   }
-
-  const data = JSON.parse(readFileSync(filepath, "utf-8"));
-  const projectId = data?.meta?.niftypm_project_id;
-  if (!projectId) {
-    console.error(`No meta.niftypm_project_id found in ${filepath}`);
-    process.exit(1);
-  }
-
-  console.error(`\nRe-syncing project ${projectId} from live API...`);
-
-  const [project, labels, taskgroups, milestonesRegular, milestonesList, tasks, members] =
-    await Promise.all([
-      client.get(`/api/v1.0/projects/${projectId}`),
-      client.get("/api/v1.0/labels", { project_id: projectId }),
-      client.get("/api/v1.0/taskgroups", { project_id: projectId }),
-      client.get("/api/v1.0/milestones", { project_id: projectId }),
-      client.get("/api/v1.0/milestones", { project_id: projectId, is_list: "true" }),
-      client.get("/api/v1.0/tasks", { project_id: projectId }),
-      client.get("/api/v1.0/members", { project_id: projectId }),
-    ]);
-
-  const allMilestones = [
-    ...(Array.isArray(milestonesRegular) ? milestonesRegular : []),
-    ...(Array.isArray(milestonesList) ? milestonesList : []),
-  ];
-  const seenMs = new Set<string>();
-  const dedupedMilestones = allMilestones.filter((ms: any) => {
-    if (!ms?.id || seenMs.has(ms.id)) return false;
-    seenMs.add(ms.id);
-    return true;
-  });
-
-  const bundle: Bundle = {
-    project: project as any,
-    labels: Array.isArray(labels) ? labels : [],
-    taskgroups: Array.isArray(taskgroups) ? taskgroups : [],
-    milestones: dedupedMilestones,
-    tasks: Array.isArray(tasks) ? tasks : [],
-    members: Array.isArray(members) ? members : [],
-  };
-
-  // Preserve original created timestamp
-  const result = buildProjectJson(bundle);
-  result.meta.created = data.meta?.created || result.meta.created;
-
-  writeFileSync(filepath, JSON.stringify(result, null, 2) + "\n", "utf-8");
-
-  const completed = result.tasks.filter((t) => t.completed).length;
-  console.error(
-    `\nSYNCED ${filepath}\n  ${result.tasks.length} tasks (${completed} completed),\n  ${result.labels.length} labels,\n  ${result.milestones.length} milestones,\n  ${result.task_lists.length} task lists`,
-  );
+  if (!Number.isInteger(idx) || idx < 0 || idx >= files.length) throw new SyncError("Invalid file selection.");
+  await refreshMirror(client, join(directory, files[idx]), allowEmpty);
 }
 
 // ── Main CLI dispatch ───────────────────────────────────────────────
@@ -322,28 +215,21 @@ export async function runCli(): Promise<void> {
 
   // Built-in subcommands
   if (subcommand === "init" || subcommand === "sync") {
-    const config = loadConfig();
+    let failed = false;
     try {
+      const config = loadConfig();
       validateConfig(config);
-    } catch (err) {
-      console.error(`Configuration error: ${(err as Error).message}`);
-      console.error('See README "Configure" section for .env and .secrets/ setup.');
-      process.exit(1);
+      const flags = z.object({ allowEmpty: z.boolean().default(false) }).strict().safeParse(parseArgs(process.argv.slice(3)));
+      if (!flags.success) throw new SyncError("Invalid manual sync flags. Use --allow-empty only for an intentional validated clear.");
+      const client = new NiftyPMClient(config);
+      if (subcommand === "init") await cmdInit(client, flags.data.allowEmpty);
+      else await cmdSync(client, flags.data.allowEmpty);
+    } catch (error) {
+      failed = true;
+      console.error(syncFailure(error));
+      console.error('Check project access, file permissions and credentials in .env or .secrets/ before retrying.');
     }
-
-    const client = new NiftyPMClient(config);
-
-    // Wire local sync for mutations during CLI operations
-    const localSync = new LocalSync(client);
-    localSync.discover();
-    client.onMutation = localSync.onMutation;
-
-    if (subcommand === "init") {
-      await cmdInit(client);
-    } else {
-      await cmdSync(client);
-    }
-    process.exit(0);
+    process.exit(failed ? 1 : 0);
   }
 
   // Help / version
@@ -354,6 +240,7 @@ Usage:
   niftypm-mcp                    Start MCP server (stdio)
   niftypm-mcp init               Interactive: select project, create local JSON
   niftypm-mcp sync               Re-sync existing local JSON from live API
+  niftypm-mcp sync --allow-empty Permit a validated intentional empty overwrite
   niftypm-mcp <tool-name> [args] Call any MCP tool directly
 
 Examples:
@@ -410,5 +297,6 @@ Examples:
     console.log(JSON.stringify(result, null, 2));
   }
 
+  await localSync.drain();
   process.exit(0);
 }
