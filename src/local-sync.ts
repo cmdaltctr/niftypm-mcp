@@ -145,7 +145,10 @@ export class LocalSync {
   onMutation = (entry: MutationEntry): Promise<void> => {
     if (process.env.NIFTYPM_AUTO_SYNC !== "true" || !methods.has(entry.method) || entry.baseUrl) return Promise.resolve();
     const info = endpointInfo(entry.endpoint);
-    if (!info) return Promise.resolve();
+    if (!info) {
+      console.error(`[local-sync] Unsupported ${entry.method} operation skipped.`);
+      return Promise.resolve();
+    }
     const projectId = this.resolveProjectId(entry);
     const filepath = projectId ? this.projectMap.get(projectId) : undefined;
     if (!projectId || !filepath) return Promise.resolve();

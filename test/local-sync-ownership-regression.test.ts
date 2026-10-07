@@ -135,6 +135,17 @@ describe("LocalSync consent and ownership through real HTTP hooks", () => {
     expect(h.getCalls()).toHaveLength(getCount);
   });
 
+  it("identifies an unsupported mutation safely without echoing its URL", async () => {
+    const h = syncHarness();
+    const privateValue = "synthetic-private-url-value";
+    await h.mutate(`/api/v1.0/docs/doc1?value=${privateValue}`, {});
+    const messages = h.stderr.mock.calls.flat().map(String);
+    expect(messages.some((message) => message.includes("Unsupported PUT operation skipped"))).toBe(true);
+    expect(messages.some((message) => message.includes(privateValue))).toBe(false);
+    expect(h.getCalls()).toHaveLength(0);
+    expect(h.bytes() === h.original).toBe(true);
+  });
+
   it.each(["/api/v1.0/docs/doc1", "/api/v1.0/tasks/unknownEntity"])("unmapped or unresolvable %s skips without mirror changes", async (endpoint) => {
     const h = syncHarness();
     h.response({ id: "unknownEntity" });
