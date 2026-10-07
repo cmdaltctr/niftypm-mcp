@@ -54,8 +54,8 @@ describe("registerDocumentsTools", () => {
     const tool = server.getTool("niftypm_create_document")!;
 
     it("should call POST /api/v1.0/docs with body", async () => {
-      const params = { name: "My Doc", content: "Hello", project_id: "proj-1" };
-      await tool.execute(params);
+      const params = { name: "My Doc", content: { text: "Hello" }, project_id: "proj-1" };
+      await tool.execute(tool.parameters.parse(params));
 
       expect(client.post).toHaveBeenCalledWith("/api/v1.0/docs", params);
     });

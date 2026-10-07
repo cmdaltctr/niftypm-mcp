@@ -46,7 +46,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     description: "Create a new document",
     parameters: z.object({
       name: z.string().describe("Document name"),
-      content: z.string().optional().describe("Document content"),
+      content: z.record(z.string(), z.unknown()).optional().describe("Document content as a JSON object"),
       project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Project ID"),
     }),
     execute: async (params: any) => {
@@ -72,7 +72,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     parameters: z.object({
       document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
       title: z.string().optional().describe("Document title"),
-      content: z.string().optional().describe("Document content"),
+      content: z.record(z.string(), z.unknown()).optional().describe("Document content as a JSON object"),
     }),
     execute: async ({ document_id, ...params }: any) => {
       const document = await client.put(`/api/v1.0/docs/${document_id}`, params);
@@ -121,7 +121,7 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
     description: "Create a new personal document (not tied to a project)",
     parameters: z.object({
       title: z.string().describe("Document title"),
-      content: z.string().optional().describe("Document content"),
+      content: z.record(z.string(), z.unknown()).optional().describe("Document content as a JSON object"),
     }),
     execute: async (params: any) => {
       const document = await client.post("/api/v1.0/docs/personal", params);

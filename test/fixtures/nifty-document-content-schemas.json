@@ -1,0 +1,18 @@
+{
+  "source": "https://developers.niftypm.com/",
+  "source_schema_sha256": "f215268be9c2d924bd614534d03a3917efd52f87f5b69a5b09882d64dcb13a01",
+  "requests": {
+    "POST /api/v1.0/docs": {
+      "operationId": "DocumentsApiController_createDocument",
+      "content": { "type": "object", "description": "Document Content" }
+    },
+    "POST /api/v1.0/docs/personal": {
+      "operationId": "DocumentsApiController_createPersonalDocument",
+      "content": { "type": "object", "description": "Document Content" }
+    },
+    "PUT /api/v1.0/docs/{document_id}": {
+      "operationId": "DocumentsApiController_editDocument",
+      "content": { "type": "object" }
+    }
+  }
+}

@@ -123,6 +123,12 @@ Uses NiftyPM's internal API (`api.niftypm.com`). Write operations require a team
 
 ### Documents
 
+For `niftypm_create_document`, `niftypm_create_personal_document` and
+`niftypm_update_document`, supply `content` as a JSON object using NiftyPM's
+native document structure. Content remains optional and passes through unchanged.
+Plain strings, arrays and `null` are rejected. The object contract alone does
+not establish editor rendering or document read permissions.
+
 | Tool | Purpose |
 | --- | --- |
 | `niftypm_list_documents` | List documents in a project. |
