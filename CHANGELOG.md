@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.5.0...v1.6.0) (2026-10-07)
+
+
+### Bug Fixes
+
+* **documents:** match content inputs to the NiftyPM API schema ([2aa6eb8](https://github.com/cmdaltctr/niftypm-mcp/commit/2aa6eb886da250eccc5951340484fe9cc4a90961))
+
+
+### Features
+
+* **auth:** add API token as primary credential, OAuth as fallback ([12af394](https://github.com/cmdaltctr/niftypm-mcp/commit/12af3944b1fdf33f91cd59be455451c24cf5355f))
+
 # [1.5.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.4.0...v1.5.0) (2026-07-01)
 
 
