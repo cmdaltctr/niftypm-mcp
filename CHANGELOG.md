@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.4.0...v1.5.0) (2026-07-01)
+
+
+### Features
+
+* **cli:** add CLI subcommands, local auto-sync, and reverse-sync engine ([4626d24](https://github.com/cmdaltctr/niftypm-mcp/commit/4626d2404dde36e4c66c7f0ea1f257bfb9f353d1))
+
 # [1.4.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.3.0...v1.4.0) (2026-06-23)
 
 
