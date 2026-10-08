@@ -21,4 +21,4 @@ Start with the [README](../../README.md) for setup, examples and the current com
 - [TDR-001: legacy document-read 403](../tdr/001-legacy-document-read-403.md)
 - [TDR-002: safe local mirror sync](../tdr/002-safe-local-mirror-sync.md)
 
-ADR-001 records the accepted implementation and outstanding security triage. Deployment or a launch-path change needs separate approval before reloading the patched code.
+ADR-001 records the accepted implementation and outstanding security triage.

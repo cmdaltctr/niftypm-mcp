@@ -177,10 +177,8 @@ Run **one writer process per mirror**. The queue serialises only writers using t
 3. Check project access, credentials and file permissions after a manual error; `init` and `sync` exit with code 1.
 4. Verify complete API results before using `--allow-empty` for an intentional clear.
 5. Select a duplicate mirror explicitly with manual `sync`, or resolve duplicate bindings before restarting automatic sync.
-6. Obtain deployment or launch-path approval before switching the MCP entry or reloading Pi.
-7. Verify the approved entry loads the patched checkout before enabling automatic sync.
-
-This change leaves operator mirrors, the main checkout and Pi MCP configuration untouched. Reloading the existing main-based entry alone keeps the old implementation.
+6. After upgrading, restart the MCP client and confirm it runs this version before enabling automatic sync.
+7. Keep automatic sync off until the new version is the only writer process for each mirror.
 
 ## Local JSON File Format
 

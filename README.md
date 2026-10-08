@@ -316,7 +316,7 @@ Mirror sync keeps legacy top-level tasks and string story estimates. Retained ta
 
 See [ADR-001](docs/adr/001-v3-document-access-and-safe-mirror-sync.md) for the decision, [TDR-001](docs/tdr/001-legacy-document-read-403.md) for the document diagnosis and [TDR-002](docs/tdr/002-safe-local-mirror-sync.md) for mirror safeguards. The [Migration Guide](docs/guides/migration.md) covers the earlier tool expansion; use this section for these breaking changes.
 
-The current configured MCP entry loads main. Obtain separate deployment or launch-path approval before switching to the patched checkout. Verify the approved source before `/reload`; reloading the existing entry keeps the old code. Stop old writers before relying on the new opt-in flag.
+When upgrading from an earlier version, stop the running server first. Versions before this change ignore `NIFTYPM_AUTO_SYNC`, so an old process can still write mirrors. Restart your MCP client and confirm it runs this version before enabling automatic sync.
 
 ## CLI Usage
 
