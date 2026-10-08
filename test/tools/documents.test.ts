@@ -13,8 +13,8 @@ describe("registerDocumentsTools", () => {
 
   registerDocumentsTools(server as any, client as any, []);
 
-  it("should register 13 document tools", () => {
-    expect(server.addTool).toHaveBeenCalledTimes(13);
+  it("should register 14 document tools", () => {
+    expect(server.addTool).toHaveBeenCalledTimes(14);
   });
 
   it("should register tools with correct names", () => {
@@ -43,10 +43,10 @@ describe("registerDocumentsTools", () => {
   describe("niftypm_get_document", () => {
     const tool = server.getTool("niftypm_get_document")!;
 
-    it("should call GET /api/v1.0/docs/:id", async () => {
-      await tool.execute({ document_id: "doc-123" });
+    it("should call GET /api/v3/documents/:id", async () => {
+      await tool.execute(tool.parameters.parse({ document_id: "doc123" }));
 
-      expect(client.get).toHaveBeenCalledWith("/api/v1.0/docs/doc-123");
+      expect(client.get).toHaveBeenCalledWith("/api/v3/documents/doc123", undefined);
     });
   });
 

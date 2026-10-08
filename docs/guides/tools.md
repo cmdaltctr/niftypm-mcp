@@ -123,16 +123,37 @@ Uses NiftyPM's internal API (`api.niftypm.com`). Write operations require a team
 
 ### Documents
 
-For `niftypm_create_document`, `niftypm_create_personal_document` and
+Document reads use two v3 endpoints:
+
+- `niftypm_get_document`: `GET /api/v3/documents/{id}` returns metadata.
+- `niftypm_get_document_content`: `GET /api/v3/documents/{id}/content` returns the Markdown body and conversion flags.
+
+Both require `document_id`, a non-empty string matching `^[0-9A-Za-z_!]+$`.
+Hyphens are rejected by these read tools.
+
+Metadata reads accept an optional `expand` array containing `project`, `author`,
+`parentDocument`, `deletedBy`, `createdByActor`, `updatedByActor` or `labels`.
+Non-empty arrays become a comma-separated `expand` query parameter. Omitted or
+empty arrays send no expansion parameter.
+
+**Breaking response change:** `niftypm_get_document` now returns raw v3 metadata
+with camelCase field names. Update callers that expect legacy response fields.
+Use `niftypm_get_document_content` to read the body. Its upstream fields
+`format`, `content`, `truncated`, `byteSize` and `lossy` pass through unchanged.
+Check `truncated` for incomplete content and `lossy` for formatting loss.
+
+Other document tools retain their legacy endpoints. For
+`niftypm_create_document`, `niftypm_create_personal_document` and
 `niftypm_update_document`, supply `content` as a JSON object using NiftyPM's
-native document structure. Content remains optional and passes through unchanged.
+native document structure. Their optional `z.record` schemas remain unchanged.
 Plain strings, arrays and `null` are rejected. The object contract alone does
 not establish editor rendering or document read permissions.
 
 | Tool | Purpose |
 | --- | --- |
 | `niftypm_list_documents` | List documents in a project. |
-| `niftypm_get_document` | Get a document by ID. |
+| `niftypm_get_document` | Get v3 document metadata by ID, with optional relation expansion. |
+| `niftypm_get_document_content` | Read the Markdown body with truncation and formatting-loss flags. |
 | `niftypm_create_document` | Create a document in a project. |
 | `niftypm_update_document` | Update an existing document. |
 | `niftypm_delete_document` | Delete a document. |
@@ -144,6 +165,33 @@ not establish editor rendering or document read permissions.
 | `niftypm_change_document` | Create a new version of a document. |
 | `niftypm_add_document_labels` | Add labels to a document. |
 | `niftypm_remove_document_labels` | Remove labels from a document. |
+
+#### Read metadata with related records
+
+Replace `document_id_here` with the document ID.
+
+```json
+{
+  "tool": "niftypm_get_document",
+  "arguments": {
+    "document_id": "document_id_here",
+    "expand": ["project", "author", "labels"]
+  }
+}
+```
+
+#### Read the document body
+
+```json
+{
+  "tool": "niftypm_get_document_content",
+  "arguments": {
+    "document_id": "document_id_here"
+  }
+}
+```
+
+For legacy `403` responses, follow [TDR-001](../tdr/001-legacy-document-read-403.md).
 
 ### Fields
 

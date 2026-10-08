@@ -57,6 +57,7 @@ const EXPECTED_TOOLS: Record<string, string[]> = {
   documents: [
     "niftypm_list_documents",
     "niftypm_get_document",
+    "niftypm_get_document_content",
     "niftypm_create_document",
     "niftypm_update_document",
     "niftypm_delete_document",

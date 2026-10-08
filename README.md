@@ -1,14 +1,14 @@
-# NiftyPM MCP Server
+# NiftyPM MCP Server: v3 Document Reads and Safe Local Mirrors
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for the [NiftyPM](https://niftypm.com) project management API.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for the [NiftyPM](https://niftypm.com) project management API, with v3 document metadata and Markdown reads.
 
-It lets AI assistants use NiftyPM projects, tasks, documents, files, milestones, messages, labels, portfolios, webhooks, time tracking, custom fields, checklists, and related workspace resources through typed MCP tools.
+AI assistants can use projects, tasks, documents and other workspace resources through typed MCP tools. Document lists and writes, mirror sync and most tools retain legacy v1 endpoints. Folder tools use v2. Local mirrors use validated fetches, backups and atomic replacement; automatic sync requires explicit opt-in.
 
 ## Highlights
 
 - Local `stdio` server for desktop MCP clients.
 - CLI subcommands: `init` (bootstrap local JSON), `sync` (re-sync from API), direct tool invocation.
-- Local auto-sync: automatically updates `niftypm/*.json` files after mutations.
+- Local auto-sync: off by default; only `NIFTYPM_AUTO_SYNC=true` enables mutation-triggered mirror updates.
 - Optional HTTP stream transport for local testing.
 - Cloudflare Workers entry point for hosted/remote use.
 - API-token-first auth: NiftyPM personal access token (`nft_user_…`) as primary, OAuth as fallback.
@@ -245,6 +245,29 @@ Once installed, your AI agent will automatically load the `s-niftypm` skill when
 
 ## Example tool calls
 
+Read document metadata, with optional related records. Replace placeholder IDs with your resource IDs.
+
+```json
+{
+  "tool": "niftypm_get_document",
+  "arguments": {
+    "document_id": "document_id_here",
+    "expand": ["project", "author"]
+  }
+}
+```
+
+Read its Markdown body separately:
+
+```json
+{
+  "tool": "niftypm_get_document_content",
+  "arguments": { "document_id": "document_id_here" }
+}
+```
+
+The content response preserves `format`, `content`, `truncated`, `byteSize` and `lossy`. Check `truncated` for incomplete content and `lossy` for formatting loss. Both read tools require IDs matching `^[0-9A-Za-z_!]+$`; hyphens are rejected.
+
 Create a task:
 
 ```json
@@ -271,13 +294,37 @@ Create a related subtask by passing the parent task ID as `task_id`:
 }
 ```
 
+## Compatibility
+
+| Operation | API contract |
+| --- | --- |
+| Document metadata and body reads | `/api/v3/documents/{id}` and `/api/v3/documents/{id}/content` |
+| Document lists, writes and other document operations | Legacy `/api/v1.0/docs` routes |
+| Mirror collections and most other public tools | Legacy `/api/v1.0` routes |
+| Folders | `/api/v2.0/folders` routes |
+| Checklists | NiftyPM's internal API |
+
+**Breaking changes:** `niftypm_get_document` returns raw camelCase v3 metadata. Automatic mirror sync now defaults to off.
+
+1. Update callers that expect legacy metadata fields.
+2. Use `niftypm_get_document_content` for the document body.
+3. Establish one writer per mirror before enabling `NIFTYPM_AUTO_SYNC=true`.
+
+Create, personal-create and update document tools retain optional `z.record` object-content schemas. Supply native JSON objects; strings, arrays and `null` are rejected by those schemas. The version-change tool retains its separate string contract.
+
+Mirror sync keeps legacy top-level tasks and string story estimates. Retained task IDs keep local enrichment, including nested subtasks. New snapshots do not fetch child details.
+
+See [ADR-001](docs/adr/001-v3-document-access-and-safe-mirror-sync.md) for the decision, [TDR-001](docs/tdr/001-legacy-document-read-403.md) for the document diagnosis and [TDR-002](docs/tdr/002-safe-local-mirror-sync.md) for mirror safeguards. The [Migration Guide](docs/guides/migration.md) covers the earlier tool expansion; use this section for these breaking changes.
+
+When upgrading from an earlier version, stop the running server first. Versions before this change ignore `NIFTYPM_AUTO_SYNC`, so an old process can still write mirrors. Restart your MCP client and confirm it runs this version before enabling automatic sync.
+
 ## CLI Usage
 
 The `niftypm-mcp` binary supports CLI subcommands in addition to starting the MCP server. This is useful for bootstrapping local project JSON files, re-syncing from the live API, and calling tools directly from the command line.
 
 ### `niftypm-mcp init`
 
-Interactive wizard that lists all accessible NiftyPM projects, lets you select one, fetches all entities, and writes a structured JSON file to `niftypm/<project-name>.json` in the current working directory.
+Interactive wizard that validates the complete project list, lets you select a project, and fetches its legacy mirror collections. It creates `niftypm/<project-name>.json` in the current working directory through an atomic rename. Existing targets require confirmation and a matching project ID; overwrites also receive an exact backup.
 
 ```bash
 cd /path/to/your/project
@@ -286,7 +333,9 @@ niftypm-mcp init
 
 ### `niftypm-mcp sync`
 
-Re-syncs an existing local JSON file from the live NiftyPM API. Reads `meta.niftypm_project_id` from the local file, fetches all entities, and rewrites the file with fresh data.
+Re-syncs a selected local mirror using `meta.niftypm_project_id`. Complete, validated fetches refresh API-owned fields while preserving `meta.created`, custom top-level keys and retained-task enrichment. Each overwrite backs up the original bytes before atomic replacement.
+
+Manual `init` and `sync` work independently of `NIFTYPM_AUTO_SYNC`. A populated collection becoming empty stops the overwrite. After verifying an intentional clear, use `niftypm-mcp sync --allow-empty` or confirmed `niftypm-mcp init --allow-empty`. This boolean flag permits complete, validated empty results only; every other check remains active. New mirrors and already-empty sections accept valid empty results without it.
 
 ```bash
 cd /path/to/your/project
@@ -298,6 +347,8 @@ niftypm-mcp sync
 Any registered MCP tool can be called directly from the CLI. Arguments are parsed as `--key value` pairs:
 
 ```bash
+niftypm-mcp niftypm_get_document --document_id "document_id_here"
+niftypm-mcp niftypm_get_document_content --document_id "document_id_here"
 niftypm-mcp niftypm_list_tasks --project_id "abc123"
 niftypm-mcp niftypm_create_task --name "Fix bug" --task_group_id "abc123"
 niftypm-mcp niftypm_list_tasks --project_id "abc123" --completed
@@ -308,16 +359,37 @@ niftypm-mcp niftypm_list_tasks --project_id "abc123" --completed
 
 ### Local auto-sync
 
-When the MCP server starts in `stdio` mode, it scans `niftypm/*.json` in the current working directory. If local JSON files are found, the server automatically updates the affected section after every mutation (POST/PUT/DELETE). This provides an offline backup that stays in sync with live NiftyPM data.
+Automatic sync is **off by default**. Only the exact value `NIFTYPM_AUTO_SYNC=true` enables discovery and mutation-triggered updates in Node stdio, Node HTTP and direct CLI tools. Unset, `false`, `TRUE` and other values keep it disabled. Cloudflare Workers omit local filesystem sync.
 
-- **No configuration needed** — just run `niftypm-mcp init` in your project directory.
-- **Targeted refetch** — only the affected entity type is re-fetched, not the entire project.
-- **Atomic writes** — files are written to a temp file then renamed to prevent corruption.
-- **Silent disable** — if no `niftypm/` directory or JSON files are found, auto-sync is silently disabled.
-- **Workers-safe** — auto-sync is only active in Node.js stdio mode, never in Cloudflare Workers.
+After deployment approval, select one server launch mode:
+
+```bash
+cd /path/to/your/project
+NIFTYPM_AUTO_SYNC=true niftypm-mcp
+# Node HTTP alternative
+NIFTYPM_AUTO_SYNC=true TRANSPORT=http PORT=8080 niftypm-mcp
+```
+
+- Supported successful POST, PUT and DELETE operations trigger scoped refreshes. Supporting reads resolve task references without replacing unrelated sections.
+- Duplicate project mirrors disable automatic writes for that project. Conflicting ownership evidence or ambiguous shared-label ownership skips sync.
+- Automatic updates cannot clear populated collections. Rejected operations preserve mirror bytes and `meta.last_synced`.
+- Each overwrite creates an exact adjacent `project.json.<UUID>.bak`, then renames a unique `.tmp` onto the mirror. Backup failure aborts replacement. Backups require operator-managed retention.
+- The shared per-file queue covers reading, fetching and writing within one process. Run **one writer process per mirror**. Stop the server before manual CLI refreshes or edits.
+- Server requests return without awaiting mirror work. Direct CLI tools await their pending mirror work before exit. Local failures retain the successful cloud result and produce safe stderr diagnostics.
+
+For an opted-in direct CLI mutation, stop the server writer first. Replace `task_id_here` with your task ID:
+
+```bash
+NIFTYPM_AUTO_SYNC=true niftypm-mcp niftypm_update_task --task_id "task_id_here" --name "Updated task name"
+```
+
+Atomic rename provides complete-file visibility. Cross-process exclusion and power-loss durability are outside this guarantee. See the [CLI Guide](docs/guides/cli.md#backups-and-writer-limits) for recovery steps and path checks.
 
 ## Documentation
 
+- [Documentation Index](docs/guides/index.md)
+- [Architecture Decision Records](docs/adr/ADR_README.md)
+- [Technical Decision Records](docs/tdr/README.md)
 - [CLI Guide](docs/guides/cli.md)
 - [Configuration and Deployment](docs/guides/configuration.md)
 - [Tool Guide](docs/guides/tools.md)
@@ -337,7 +409,9 @@ bun run build
 ```text
 src/              MCP server, API client, and tool registrations
 test/             Vitest tests
-docs/guides/      User-facing guides and reference docs
+docs/guides/      Documentation index, guides and reference docs
+docs/adr/         Architecture decisions and index
+docs/tdr/         Technical findings and regression evidence
 docs/api/         Upstream OpenAPI source files
 docs/security/    Security audit notes
 ```

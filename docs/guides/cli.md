@@ -1,6 +1,6 @@
 # NiftyPM MCP CLI Guide
 
-The `niftypm-mcp` binary works as both an MCP server and a CLI. When invoked with no arguments, it starts the MCP server. When invoked with a subcommand, it runs that command and exits.
+The `niftypm-mcp` binary starts a Node MCP server with no arguments. A subcommand runs the CLI and exits. Use configured credentials before running these examples. Local mirrors are read from `niftypm/` in the current working directory.
 
 ## Quick Start
 
@@ -28,30 +28,34 @@ niftypm-mcp help
 
 Interactive wizard that creates a local JSON snapshot of a NiftyPM project.
 
-1. Lists all accessible NiftyPM projects.
-2. Prompts you to select one.
-3. Fetches all entities (labels, task lists, milestones, tasks, members).
-4. Transforms them into a structured JSON file.
-5. Writes to `niftypm/<project-name>.json` in the current working directory.
+1. Reads the complete, validated project list.
+2. Prompts you to select a project.
+3. Fetches complete legacy collections for the snapshot.
+4. Transforms the data into a local mirror.
+5. Creates `niftypm/<project-name>.json` through an atomic rename.
+
+The selected list record supplies project metadata without an additional project-detail request.
 
 ```bash
 cd /path/to/your/project
 niftypm-mcp init
 ```
 
-If `niftypm/<project-name>.json` already exists, you will be prompted to confirm overwrite.
+An existing target requires overwrite confirmation. The selected project must match its `meta.niftypm_project_id`. Confirmation leaves the validation and empty-result checks active.
 
-**Prerequisites:** Valid NiftyPM OAuth credentials (`.env` or `.secrets/`).
+**Prerequisites:** A valid `NIFTYPM_API_TOKEN`, or the complete OAuth credential set. See the [Configuration Guide](configuration.md). Node loads `.env` from the installed project's root; credential fallback uses its `.secrets/` directory. The shell environment takes precedence.
 
 ### `sync`
 
 Re-syncs an existing local JSON file from the live NiftyPM API.
 
 1. Scans `niftypm/*.json` in the current working directory.
-2. If multiple files found, prompts for selection.
-3. Reads `meta.niftypm_project_id` from the selected file.
-4. Fetches all entities from the live API.
-5. Rewrites the file with fresh data (preserves `meta.created`).
+2. Prompts for a file when several files exist.
+3. Reads the selected mirror's project ID.
+4. Validates project metadata and fetches every collection page.
+5. Backs up the original file before replacing it atomically.
+
+Full refreshes preserve `meta.created`, custom top-level keys and local enrichment for retained task IDs. Refreshed API-owned task fields take precedence. Nested `subtasks` and local-only fields such as `subtask_details` survive. The derived validation checklist can be regenerated.
 
 ```bash
 cd /path/to/your/project
@@ -59,6 +63,20 @@ niftypm-mcp sync
 ```
 
 If no `niftypm/` directory or JSON files are found, exits with an error suggesting `niftypm-mcp init`.
+
+### Intentional empty overwrites
+
+Manual `init` and `sync` work independently of automatic-sync consent. A populated `tasks`, `labels`, `task_lists` or `milestones` section becoming empty stops the entire overwrite.
+
+After verifying the intended clear, use a boolean flag:
+
+```bash
+niftypm-mcp sync --allow-empty
+# An existing init target still requires overwrite confirmation
+niftypm-mcp init --allow-empty
+```
+
+`--allow-empty` permits only complete, validated empty results during manual overwrites. Malformed responses, foreign-project data and failed pagination still stop the write. Multi-page results must pass every check. `--allow-empty true` supplies a string and is rejected. Automatic sync still requires its separate opt-in. New mirrors and already-empty sections accept valid empty collections without the flag.
 
 ### Direct tool invocation
 
@@ -82,16 +100,16 @@ niftypm-mcp niftypm_get_task --task_id "task123"
 
 | Pattern | Result | Example |
 |---------|--------|---------|
-| `--key value` | String | `--name "Fix bug"` → `{ name: "Fix bug" }` |
-| `--flag` | Boolean `true` | `--completed` → `{ completed: true }` |
-| `--no-flag` | Boolean `false` | `--no-archived` → `{ archived: false }` |
-| `--key a --key b` | Array | `--label lab1 --label lab2` → `{ label: ["lab1", "lab2"] }` |
+| `--key value` | String | `--name "Fix bug"`: `{ name: "Fix bug" }` |
+| `--flag` | Boolean `true` | `--completed`: `{ completed: true }` |
+| `--no-flag` | Boolean `false` | `--no-archived`: `{ archived: false }` |
+| `--key a --key b` | Array | `--assignees member1 --assignees member2`: `{ assignees: ["member1", "member2"] }` |
 
-Arguments are validated against the tool's Zod schema before execution. Invalid arguments print an error and exit with code 1.
+Arguments are validated against the tool's Zod schema before execution. Invalid arguments print an error and exit with code 1. Values remain strings; numeric and object parameters are not converted. Hyphenated argument names become camelCase; use the schema's underscore names shown in the examples.
 
 ### `help`
 
-Prints available commands and usage examples.
+Prints usage guidance to stderr. Use `help`; root binary dispatch for `--help` and `-h` remains unchanged.
 
 ```bash
 niftypm-mcp help
@@ -99,46 +117,72 @@ niftypm-mcp help
 
 ## Local Auto-Sync
 
-When the MCP server starts in `stdio` mode, it automatically scans `niftypm/*.json` in the current working directory. If local JSON files are found, the server keeps them in sync after every mutation.
+Automatic sync is **off by default**. Only the exact value `NIFTYPM_AUTO_SYNC=true` enables discovery and mutation-triggered mirror updates. Unset, `false`, `TRUE` and other values keep it disabled. Finding a mirror alone gives no consent.
+
+The opt-in applies to Node stdio, Node HTTP and direct CLI tool invocations. Cloudflare Workers do not activate local mirror sync; `.dev.vars` cannot enable mirror filesystem writes.
 
 ### How it works
 
-1. **Discovery** — On startup, reads `meta.niftypm_project_id` from each `niftypm/*.json` file and builds an in-memory map of `project_id → filepath`.
-2. **Interception** — After every successful POST, PUT, or DELETE request, the `onMutation` callback is invoked with the HTTP method, endpoint, request body, and response body.
-3. **Classification** — The endpoint URL is matched to an entity type (tasks, task_lists, milestones, labels, project).
-4. **Project resolution** — The affected project is determined using a priority chain: response body → request body → local JSON entity ID scan → skip.
-5. **Targeted refetch** — Only the affected entity type is re-fetched from the API, not the entire project.
-6. **In-place update** — The corresponding section in the local JSON file is replaced with fresh data. `meta.last_synced` is updated. All other sections are preserved.
-7. **Atomic write** — The file is written to a temporary file then renamed, preventing corruption from interrupted writes.
+1. With consent, discovery validates `niftypm/*.json` and binds each project to one file.
+2. Successful POST, PUT and DELETE requests notify the mutation callback; GET requests do not.
+3. Supported legacy endpoints identify tasks, task lists, milestones, labels or project metadata.
+4. Agreeing request, response and cached ownership evidence selects the project; conflicts or ambiguous ownership skip sync.
+5. The per-file queue covers reading, fetching, validation and writing.
+6. Complete validated fetches prepare only the affected section, with supporting reads for task references.
+7. A backup and atomic rename commit the update and `meta.last_synced`.
+
+Task updates preserve supporting sections and the existing checklist. Label-only refresh matches existing mirror label IDs against workspace records. It updates names and colours, removes missing IDs and applies the empty-result guard. Task label names refresh during a task or full sync.
 
 ### Example workflow
 
+After deployment approval and confirmation of one writer per mirror:
+
 ```bash
-# 1. Bootstrap a local JSON file
 cd /path/to/your/project
 niftypm-mcp init
-# → Creates niftypm/my-project.json
 
-# 2. Start the MCP server from the same directory
-niftypm-mcp
-# → Discovers niftypm/my-project.json, enables auto-sync
+# Choose one launch mode; do not run these together
+NIFTYPM_AUTO_SYNC=true niftypm-mcp
+# Node HTTP alternative, bound to loopback
+NIFTYPM_AUTO_SYNC=true TRANSPORT=http PORT=8080 niftypm-mcp
+```
 
-# 3. AI agent creates a task via MCP tools
-# → NiftyPM API: POST /api/v1.0/tasks
-# → Auto-sync: refetches tasks for the project
-# → Updates niftypm/my-project.json in-place
+For a direct CLI write, stop the server writer first. Use a real task ID:
+
+```bash
+NIFTYPM_AUTO_SYNC=true niftypm-mcp niftypm_update_task --task_id "task123" --name "Fix login bug"
 ```
 
 ### Key behaviours
 
-- **Silent disable** — If no `niftypm/` directory or JSON files are found, auto-sync is silently disabled. No errors or warnings.
-- **Non-blocking** — Sync runs asynchronously and never blocks the tool response or throws errors into the calling context. Errors are logged to stderr.
-- **Workers-safe** — Auto-sync is only active in Node.js stdio mode. The Cloudflare Workers entry point (`worker.ts`) does not import or activate local sync.
-- **CLI too** — Direct tool invocations via CLI also trigger auto-sync if local JSON files are present.
+- Missing mirror files leave automatic sync inactive silently. Invalid mirrors are skipped with safe diagnostics.
+- Duplicate project IDs disable automatic writes for that project. Manual `sync` can explicitly select one duplicate file; only that file changes. Automatic writes remain disabled for the duplicate binding.
+- Shared workspace labels need explicit, agreeing project evidence when several mirrors own the same label ID. Ambiguous mutations skip sync.
+- Unsupported endpoints and internal-API mutations skip local sync.
+- Mirror failures produce safe stderr diagnostics while retaining the successful cloud result. A direct CLI call keeps exit code 0.
+- Server requests return without awaiting background sync. Opted-in CLI calls print the cloud result, then await pending mirror work before exit.
+
+## Backups and Writer Limits
+
+Every overwrite creates an adjacent `project.json.<UUID>.bak` containing the exact previous bytes before replacement. Backup creation uses exclusive creation; failure aborts the overwrite. The replacement uses a unique adjacent `project.json.<UUID>.tmp`, also created exclusively, then renamed onto the mirror. Initial creation uses the temporary-file path without a backup.
+
+Rejected fetches or writes leave the original mirror and timestamp unchanged. Failed replacements retain recovery files. Discovery excludes writer `.bak` and `.tmp` files. Backups are never deleted automatically; manage retention after inspecting them.
+
+Run **one writer process per mirror**. The queue serialises only writers using the shared module within one process. Stop the server before manual CLI refreshes. External editors and other processes can race with the writer. Atomic rename provides complete-file visibility; power-loss durability is not guaranteed.
+
+## Troubleshooting and Rollout
+
+1. Stop old writers before relying on `NIFTYPM_AUTO_SYNC=false`; the old implementation ignores the opt-in flag.
+2. Inspect any backup before requesting approval to restore it.
+3. Check project access, credentials and file permissions after a manual error; `init` and `sync` exit with code 1.
+4. Verify complete API results before using `--allow-empty` for an intentional clear.
+5. Select a duplicate mirror explicitly with manual `sync`, or resolve duplicate bindings before restarting automatic sync.
+6. After upgrading, restart the MCP client and confirm it runs this version before enabling automatic sync.
+7. Keep automatic sync off until the new version is the only writer process for each mirror.
 
 ## Local JSON File Format
 
-The local JSON file mirrors the NiftyPM project state in a structured format. It is produced by `buildProjectJson()` in `src/reverse-sync.ts`, which is a TypeScript port of `scripts/reverse-sync.py`.
+`buildProjectJson()` in `src/reverse-sync.ts` creates the mirror structure below. This illustrative empty mirror contains no operator data.
 
 ```json
 {
@@ -146,30 +190,46 @@ The local JSON file mirrors the NiftyPM project state in a structured format. It
     "created": "2024-01-01T00:00:00Z",
     "last_synced": "2024-01-15T12:30:00Z",
     "generated_by": "niftypm-mcp/reverse-sync.ts",
-    "project_nice_id": "AIE",
-    "niftypm_project_id": "KJ1kaUGQe8",
+    "project_nice_id": "SYN",
+    "niftypm_project_id": "abc123",
     "source": "Live NiftyPM API via niftypm-mcp",
-    "notes": "Subtask names not yet populated..."
+    "notes": "New snapshots leave subtasks empty; overwrites retain local enrichment."
   },
   "project": {
     "name": "My Project",
-    "description": "...",
-    "portfolio": "...",
-    "portfolio_id": "...",
-    "repo": "..."
+    "description": "",
+    "portfolio": ""
   },
-  "labels": [{ "name": "bug", "color": "#ff0000", "id": "..." }],
-  "task_lists": [{ "name": "Sprint 1", "id": "...", "order": 1 }],
-  "milestones": [{ "name": "MVP", "id": "...", "due": "2024-12-31", "description": "..." }],
-  "tasks": [{ "id": "...", "nice_id": "AIE-1", "name": "...", "task_list": "Sprint 1", ... }],
-  "_validation_checklist": ["..."]
+  "labels": [],
+  "task_lists": [],
+  "milestones": [],
+  "tasks": [],
+  "_validation_checklist": []
 }
 ```
 
-This is the same format produced by the `reverse-sync.py` script and used in the JSON-First Planning workflow. See the [Workflow Guide](workflow.md) for more details.
+Mirrors keep legacy `/api/v1.0/tasks` top-level semantics. The regression fixture retains 48 parent tasks and 53 nested local children. A v3 flat task collection would mix those into 101 records. New snapshots do not fetch child details. Legacy string story estimates remain strings; finite numbers and null estimates are also accepted.
+
+Labels and members are fetched at workspace scope without a project filter. Full snapshots select labels referenced by project tasks.
+
+Collection reads validate endpoint-specific wrappers:
+
+| Collection | Accepted response | Completion |
+| --- | --- | --- |
+| Tasks | `{ tasks, hasMore }` | Required boolean `hasMore` |
+| Projects | `{ projects, hasMore }` or `{ items, hasMore }` | Required boolean `hasMore` |
+| Milestones | `{ items, hasMore }` | Required boolean `hasMore`; both variants fetched |
+| Labels, task groups | `{ items }`, optionally with `hasMore` | Boolean flag if present; otherwise a short page |
+| Members | Bare unpaginated array or `{ items, has_more: false }` | Sole bare-array exception; continuation is unsupported |
+
+Other bare API arrays, mixed collection keys and invalid records are rejected. Paginated reads use limit 100 and advance offset by returned row count. Repeated IDs, failed later pages or empty pages claiming more results reject the whole update.
+
+See the [Workflow Guide](workflow.md) for the JSON planning workflow.
 
 ## Related
 
-- [Workflow Guide](workflow.md) — JSON-First Planning and Reverse Sync
-- [Configuration Guide](configuration.md) — Setting up credentials and transport
-- [Tool Guide](tools.md) — Full list of available MCP tools
+- [Workflow Guide](workflow.md): JSON planning and reverse sync
+- [Configuration Guide](configuration.md): credentials and transport
+- [Tool Guide](tools.md): available MCP tools
+- [TDR-002](../tdr/002-safe-local-mirror-sync.md): mirror clobbering diagnosis and regression evidence
+- [TDR-001](../tdr/001-legacy-document-read-403.md): the separate v3 document-read fix

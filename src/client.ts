@@ -188,7 +188,7 @@ export class NiftyPMClient {
   ): void {
     if (!this.onMutation) return;
     const upper = (method || "GET").toUpperCase();
-    if (upper === "GET") return;
+    if (!["POST", "PUT", "DELETE"].includes(upper)) return;
 
     let parsedBody: any = undefined;
     if (requestBody && typeof requestBody === "string") {
@@ -200,15 +200,18 @@ export class NiftyPMClient {
     }
 
     try {
-      this.onMutation({
+      const pending = this.onMutation({
         method: upper,
         endpoint,
         baseUrl,
         requestBody: parsedBody,
         responseBody,
       });
-    } catch (err) {
-      console.error("[local-sync] onMutation error:", err);
+      void Promise.resolve(pending).catch(() => {
+        console.error("[local-sync] Mutation callback failed; cloud result is unchanged.");
+      });
+    } catch {
+      console.error("[local-sync] Mutation callback failed; cloud result is unchanged.");
     }
   }
 

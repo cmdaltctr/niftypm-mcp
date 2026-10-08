@@ -127,9 +127,9 @@ describe("Server creation integration", () => {
     registerTasksTools(mockServer as any, client, []);
     registerSubTeamsTools(mockServer as any, client, []);
 
-    // 8 files + 5 labels + 13 docs + 9 milestones + 7 messages + 8 taskgroups + 23 tasks + 8 subteams = 81
+    // 8 files + 5 labels + 14 docs + 9 milestones + 7 messages + 8 taskgroups + 23 tasks + 8 subteams = 82
     // We only test the original ones here in this specific test
-    expect(mockServer.addTool).toHaveBeenCalledTimes(81);
+    expect(mockServer.addTool).toHaveBeenCalledTimes(82);
   });
 
   it("should respect enabledTools configuration to skip tool groups", async () => {

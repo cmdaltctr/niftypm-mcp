@@ -28,13 +28,32 @@ export function registerDocumentsTools(server: any, client: NiftyPMClient, disab
   if (!disabledTools.includes("niftypm_get_document")) {
   server.addTool({
     name: "niftypm_get_document",
-    description: "Get a specific document by ID",
+    description: "Get document metadata through the v3 API. Use niftypm_get_document_content for its Markdown body.",
     parameters: z.object({
-      document_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Document ID"),
+      document_id: z.string().regex(/^[0-9A-Za-z_!]+$/).describe("Document ID"),
+      expand: z.array(z.enum([
+        "project", "author", "parentDocument", "deletedBy", "createdByActor", "updatedByActor", "labels",
+      ])).optional().describe("Relations to include in document metadata"),
+    }),
+    execute: async ({ document_id, expand }: any) => {
+      const document = await client.get(`/api/v3/documents/${document_id}`,
+        expand?.length ? { expand: expand.join(",") } : undefined);
+      return JSON.stringify(document, null, 2);
+    },
+  });
+  }
+
+  // Read the native document body separately from metadata.
+  if (!disabledTools.includes("niftypm_get_document_content")) {
+  server.addTool({
+    name: "niftypm_get_document_content",
+    description: "Read a native document as Markdown, including truncation and formatting-loss flags",
+    parameters: z.object({
+      document_id: z.string().regex(/^[0-9A-Za-z_!]+$/).describe("Document ID"),
     }),
     execute: async ({ document_id }: any) => {
-      const document = await client.get(`/api/v1.0/docs/${document_id}`);
-      return JSON.stringify(document, null, 2);
+      const content = await client.get(`/api/v3/documents/${document_id}/content`);
+      return JSON.stringify(content, null, 2);
     },
   });
   }
