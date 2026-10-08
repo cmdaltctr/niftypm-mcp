@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.6.0...v2.0.0) (2026-10-08)
+
+
+* fix(documents)!: use v3 for native document reads ([118f192](https://github.com/cmdaltctr/niftypm-mcp/commit/118f19282dcf44d777f576ec5325e5dc7ad29bbe))
+* fix(sync)!: require opt-in and protect local mirrors ([829a0dd](https://github.com/cmdaltctr/niftypm-mcp/commit/829a0dd289e99490c692d71b2d72d1c9aa3359d3))
+
+
+### Bug Fixes
+
+* **deps:** update proxy-addr and npm bundled tar for known CVEs ([be61bd1](https://github.com/cmdaltctr/niftypm-mcp/commit/be61bd1dbaf8732f42f0319f0d3a9dd4e1ebbb7b))
+* **sync:** report skipped unsupported mutations safely ([bc52cd8](https://github.com/cmdaltctr/niftypm-mcp/commit/bc52cd8b3edb96fab3e18330297aebe3a5dca81f))
+
+
+### BREAKING CHANGES
+
+* automatic local mirror sync is disabled unless NIFTYPM_AUTO_SYNC=true. Manual empty overwrites require --allow-empty.
+* document metadata reads return v3 camelCase fields. Use niftypm_get_document_content for the Markdown body.
+
 # [1.6.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.5.0...v1.6.0) (2026-10-07)
 
 
