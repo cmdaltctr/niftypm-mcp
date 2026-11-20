@@ -6,6 +6,21 @@
 import { z } from "zod";
 import type { NiftyPMClient } from "../client.js";
 
+const DATE_NOTE = "The roadmap shows a milestone only when both start_date and end_date are set.";
+
+/**
+ * Map the tool date params to the API fields `start` and `end`.
+ * NiftyPM ignores `due_date`, so it is an alias for `end` and is never forwarded.
+ * If both `end_date` and `due_date` are given, `end_date` wins.
+ */
+function withMilestoneDates({ start_date, end_date, due_date, ...rest }: any) {
+  const body: Record<string, unknown> = { ...rest };
+  if (start_date !== undefined) body.start = start_date;
+  const end = end_date ?? due_date;
+  if (end !== undefined) body.end = end;
+  return body;
+}
+
 export function registerMilestonesTools(server: any, client: NiftyPMClient, disabledTools: string[] = []) {
   // List milestones
   if (!disabledTools.includes("niftypm_list_milestones")) {
@@ -45,15 +60,17 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient, disa
   if (!disabledTools.includes("niftypm_create_milestone")) {
   server.addTool({
     name: "niftypm_create_milestone",
-    description: "Create a new milestone",
+    description: `Create a new milestone. ${DATE_NOTE}`,
     parameters: z.object({
       name: z.string().describe("Milestone name"),
       project_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Project ID"),
-      due_date: z.string().optional().describe("Due date (ISO 8601 format)"),
+      start_date: z.string().optional().describe("Start date (ISO 8601 format), sent to the API as start"),
+      end_date: z.string().optional().describe("End date (ISO 8601 format), sent to the API as end"),
+      due_date: z.string().optional().describe("Deprecated alias for end_date. Ignored when end_date is set"),
       description: z.string().optional().describe("Milestone description"),
     }),
     execute: async (params: any) => {
-      const milestone = await client.post("/api/v1.0/milestones", params);
+      const milestone = await client.post("/api/v1.0/milestones", withMilestoneDates(params));
       return JSON.stringify(milestone, null, 2);
     },
   });
@@ -63,15 +80,17 @@ export function registerMilestonesTools(server: any, client: NiftyPMClient, disa
   if (!disabledTools.includes("niftypm_update_milestone")) {
   server.addTool({
     name: "niftypm_update_milestone",
-    description: "Update an existing milestone",
+    description: `Update an existing milestone. ${DATE_NOTE}`,
     parameters: z.object({
       milestone_id: z.string().regex(/^[a-zA-Z0-9_!-]+$/).describe("Milestone ID"),
       name: z.string().optional().describe("Milestone name"),
-      due_date: z.string().optional().describe("Due date (ISO 8601 format)"),
+      start_date: z.string().optional().describe("Start date (ISO 8601 format), sent to the API as start"),
+      end_date: z.string().optional().describe("End date (ISO 8601 format), sent to the API as end"),
+      due_date: z.string().optional().describe("Deprecated alias for end_date. Ignored when end_date is set"),
       description: z.string().optional().describe("Milestone description"),
     }),
     execute: async ({ milestone_id, ...params }: any) => {
-      const milestone = await client.put(`/api/v1.0/milestones/${milestone_id}`, params);
+      const milestone = await client.put(`/api/v1.0/milestones/${milestone_id}`, withMilestoneDates(params));
       return JSON.stringify(milestone, null, 2);
     },
   });

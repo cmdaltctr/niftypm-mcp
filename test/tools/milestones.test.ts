@@ -56,14 +56,53 @@ describe("registerMilestonesTools", () => {
     const tool = server.getTool("niftypm_create_milestone")!;
 
     it("should call POST /api/v1.0/milestones with body", async () => {
-      const params = {
-        name: "Sprint 1",
-        project_id: "proj-1",
-        due_date: "2025-01-31",
-      };
+      const params = { name: "Sprint 1", project_id: "proj-1" };
       await tool.execute(params);
 
       expect(client.post).toHaveBeenCalledWith("/api/v1.0/milestones", params);
+    });
+
+    it("should send start_date and end_date as start and end", async () => {
+      client.post.mockClear();
+      await tool.execute({
+        name: "Sprint 1",
+        project_id: "proj-1",
+        start_date: "2025-01-01",
+        end_date: "2025-01-31",
+      });
+
+      expect(client.post).toHaveBeenCalledWith("/api/v1.0/milestones", {
+        name: "Sprint 1",
+        project_id: "proj-1",
+        start: "2025-01-01",
+        end: "2025-01-31",
+      });
+    });
+
+    it("should map due_date to end and never forward due_date", async () => {
+      client.post.mockClear();
+      await tool.execute({ name: "Sprint 1", project_id: "proj-1", due_date: "2025-01-31" });
+
+      expect(client.post).toHaveBeenCalledWith("/api/v1.0/milestones", {
+        name: "Sprint 1",
+        project_id: "proj-1",
+        end: "2025-01-31",
+      });
+    });
+
+    it("should let end_date win over due_date", async () => {
+      client.post.mockClear();
+      await tool.execute({
+        name: "Sprint 1",
+        project_id: "proj-1",
+        due_date: "2025-02-15",
+        end_date: "2025-01-31",
+      });
+
+      const body = client.post.mock.calls[0][1];
+      expect(body.end).toBe("2025-01-31");
+      expect(body).not.toHaveProperty("due_date");
+      expect(body).not.toHaveProperty("end_date");
     });
   });
 
@@ -76,6 +115,43 @@ describe("registerMilestonesTools", () => {
       expect(client.put).toHaveBeenCalledWith("/api/v1.0/milestones/ms-1", {
         name: "Updated Sprint",
       });
+    });
+
+    it("should send start_date and end_date as start and end", async () => {
+      client.put.mockClear();
+      await tool.execute({
+        milestone_id: "ms-1",
+        start_date: "2025-01-01",
+        end_date: "2025-01-31",
+      });
+
+      expect(client.put).toHaveBeenCalledWith("/api/v1.0/milestones/ms-1", {
+        start: "2025-01-01",
+        end: "2025-01-31",
+      });
+    });
+
+    it("should map due_date to end and never forward due_date", async () => {
+      client.put.mockClear();
+      await tool.execute({ milestone_id: "ms-1", due_date: "2025-01-31" });
+
+      expect(client.put).toHaveBeenCalledWith("/api/v1.0/milestones/ms-1", {
+        end: "2025-01-31",
+      });
+    });
+
+    it("should let end_date win over due_date", async () => {
+      client.put.mockClear();
+      await tool.execute({
+        milestone_id: "ms-1",
+        due_date: "2025-02-15",
+        end_date: "2025-01-31",
+      });
+
+      const body = client.put.mock.calls[0][1];
+      expect(body.end).toBe("2025-01-31");
+      expect(body).not.toHaveProperty("due_date");
+      expect(body).not.toHaveProperty("end_date");
     });
   });
 
