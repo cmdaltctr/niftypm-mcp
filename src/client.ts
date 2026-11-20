@@ -16,6 +16,23 @@ export interface MutationEntry {
   responseBody?: any;
 }
 
+/**
+ * Build the error message for a non-OK response. Uses statusText only, to
+ * avoid leaking upstream error bodies into logs or LLM context. A 429 adds
+ * the Retry-After wait, because NiftyPM blocks for 10 to 60 minutes and
+ * retrying sooner does not shorten the block.
+ */
+function apiErrorMessage(response: Response): string {
+  const base = `NiftyPM API error (${response.status}): ${response.statusText}`;
+  if (response.status !== 429) return base;
+
+  const retryAfter = response.headers.get("Retry-After");
+  const wait = retryAfter
+    ? `retry after ${retryAfter} seconds`
+    : "wait time unknown, wait at least 10 minutes";
+  return `${base}. Rate limited; ${wait} (NiftyPM blocks for 10 to 60 minutes; retrying sooner does not help).`;
+}
+
 export class NiftyPMClient {
   private config: NiftyPMConfig;
 
@@ -157,7 +174,7 @@ export class NiftyPMClient {
       if (!response.ok) {
         // Use statusText only to avoid leaking upstream error bodies
         // (which could contain tokens) into logs or LLM context.
-        throw new Error(`NiftyPM API error (${response.status}): ${response.statusText}`);
+        throw new Error(apiErrorMessage(response));
       }
 
       // 204 No Content — no body to parse
@@ -260,7 +277,7 @@ export class NiftyPMClient {
       }
 
       if (!response.ok) {
-        throw new Error(`NiftyPM API error (${response.status}): ${response.statusText}`);
+        throw new Error(apiErrorMessage(response));
       }
 
       const result = (await response.json()) as T;
