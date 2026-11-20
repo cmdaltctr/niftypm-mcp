@@ -5,7 +5,6 @@ dist/
 .dev.vars
 .secrets/
 .wrangler/
-openspec/
 .opencode/
 docs/api/
 docs/security/
