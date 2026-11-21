@@ -1,4 +1,10 @@
-## ADDED Requirements
+# cli-interface Specification
+
+## Purpose
+
+Defines the command line interface of the niftypm-mcp binary: subcommand dispatch, argument parsing, the interactive init command and the manual sync command, while running with no arguments still starts the MCP server.
+
+## Requirements
 
 ### Requirement: CLI subcommand dispatch
 The `niftypm-mcp` binary SHALL support subcommand dispatch via `process.argv`. When invoked with no subcommand, it SHALL start the MCP server (current behaviour). When invoked with a recognised subcommand (`init`, `sync`), it SHALL execute that command and exit. When invoked with a string matching a registered tool name, it SHALL execute that tool with CLI-parsed arguments and exit.

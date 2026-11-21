@@ -1,4 +1,10 @@
-## ADDED Requirements
+# checklist-tools Specification
+
+## Purpose
+
+Defines the MCP tools that manage NiftyPM checklists and checklist items, and how the server reaches the internal API base URL that these endpoints require alongside the public one.
+
+## Requirements
 
 ### Requirement: Checklist Management Tools
 

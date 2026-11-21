@@ -1,4 +1,10 @@
-## ADDED Requirements
+# local-sync Specification
+
+## Purpose
+
+Defines how the running MCP server keeps local project JSON files current: discovering them, intercepting mutations, refetching affected entities and updating the files in place, without breaking Cloudflare Workers builds.
+
+## Requirements
 
 ### Requirement: Local JSON auto-discovery
 The MCP server SHALL scan `process.cwd()/niftypm/*.json` at startup, read `meta.niftypm_project_id` from each file, and build an in-memory map of `project_id → filepath`. If no JSON files are found, auto-sync SHALL be silently disabled (no error, no warning).
