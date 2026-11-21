@@ -56,6 +56,17 @@ describe("429 rate-limit message", () => {
       expect(message).toContain("retrying sooner does not help");
     });
 
+    it("shows an HTTP-date Retry-After as a date, not as seconds", async () => {
+      const date = "Sat, 21 Nov 2026 12:10:00 GMT";
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(tooManyRequests(date));
+
+      const error = await call(client).catch((e: Error) => e);
+
+      const message = (error as Error).message;
+      expect(message).toContain(`retry after ${date}`);
+      expect(message).not.toContain(`${date} seconds`);
+    });
+
     it("says the wait is unknown when Retry-After is missing", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(tooManyRequests());
 

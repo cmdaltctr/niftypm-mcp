@@ -68,7 +68,7 @@ Expose `config.apiToken ? "api-token" : "oauth"` as a mode string for startup lo
 
 1. Ship the change (code + docs). No deployment action required for existing OAuth users.
 2. For users who want to switch: generate a Full-access token in NiftyPM Settings → MCP & AI assistants → API tokens, set `NIFTYPM_API_TOKEN` (env or `.secrets/api_token`), and optionally remove the OAuth quartet.
-3. Rollback: unset `NIFTYPM_API_TOKEN`; the server falls back to OAuth automatically. No code rollback needed.
+3. Rollback: restore the OAuth quartet (`NIFTYPM_CLIENT_ID`, `NIFTYPM_CLIENT_SECRET`, `NIFTYPM_ACCESS_TOKEN`, `NIFTYPM_REFRESH_TOKEN`) if you removed it in step 2. Then unset `NIFTYPM_API_TOKEN` in the environment and delete `.secrets/api_token`. The server falls back to OAuth automatically. No code rollback needed.
 
 ## Open Questions
 

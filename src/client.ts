@@ -28,7 +28,9 @@ function apiErrorMessage(response: Response): string {
 
   const retryAfter = response.headers.get("Retry-After");
   const wait = retryAfter
-    ? `retry after ${retryAfter} seconds`
+    ? /^\d+$/.test(retryAfter.trim())
+      ? `retry after ${retryAfter.trim()} seconds`
+      : `retry after ${retryAfter}`
     : "wait time unknown, wait at least 10 minutes";
   return `${base}. Rate limited; ${wait} (NiftyPM blocks for 10 to 60 minutes; retrying sooner does not help).`;
 }

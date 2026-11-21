@@ -17,6 +17,10 @@ The system SHALL accept a `NIFTYPM_API_TOKEN` environment variable (with `.secre
 - **WHEN** `NIFTYPM_API_TOKEN` is unset but `.secrets/api_token` exists
 - **THEN** the system reads the token from that file and uses it as the primary credential
 
+#### Scenario: Caller-supplied Authorization header is kept
+- **WHEN** a request supplies its own `Authorization` header
+- **THEN** the system keeps that header and does not apply API-token or OAuth credential selection to the request
+
 #### Scenario: API token used for internal API
 - **WHEN** a request targets `api.niftypm.com` (internal base URL) and the API token is the active credential
 - **THEN** the system sends the same API token as the Bearer credential for that request
@@ -48,7 +52,7 @@ The system SHALL fall back to the OAuth 2.0 credential set only when `NIFTYPM_AP
 - **THEN** `validateConfig` throws an error listing the missing credentials and pointing the user to `NIFTYPM_API_TOKEN` as the recommended option
 
 ### Requirement: No refresh attempt on API-token 401
-When the active credential is the API token and a request receives a `401`, the system SHALL NOT attempt a token refresh (personal access tokens have no refresh mechanism). It SHALL fail the request with an error that names the API token as the problem and instructs the user to rotate or revoke it from NiftyPM Settings → MCP & AI assistants → API tokens.
+When the active credential is the API token and a request receives a `401`, the system SHALL NOT attempt a token refresh (personal access tokens have no refresh mechanism). It SHALL fail the request with an error that names the API token as the problem and instructs the user to rotate or revoke it from NiftyPM Settings → MCP & AI assistants → API tokens. This applies to client-managed authentication only. A request with a caller-supplied `Authorization` header is excluded.
 
 #### Scenario: 401 with API token surfaces actionable error
 - **WHEN** a request authenticated with the API token receives a `401`
