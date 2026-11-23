@@ -134,7 +134,8 @@ export class LocalSync {
         else data.milestones = fresh.milestones;
       }
       writeMirror(filepath, data, previous);
-      this.indexEntityIds(data, projectId);
+      // A rescan during the fetch may have disabled this project; do not restore its ownership.
+      if (this.projectMap.get(projectId) === filepath) this.indexEntityIds(data, projectId);
     });
   }
 

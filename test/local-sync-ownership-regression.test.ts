@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { mirrorFixture, tasks } from "./fixtures/sync-regression-fixtures.js";
-import { syncHarness, restoreSyncTest } from "./fixtures/sync-regression-harness.js";
+import { syncHarness, restoreSyncTest, deferred } from "./fixtures/sync-regression-harness.js";
 
 afterEach(restoreSyncTest);
 
@@ -162,5 +162,25 @@ describe("LocalSync consent and ownership through real HTTP hooks", () => {
     h.response({ id: "taskAdded" });
     await h.mutate("/api/v1.0/tasks/taskAdded", {});
     expect(h.getCalls().length).toBeGreaterThan(0);
+  });
+
+  it("does not restore ownership for a project disabled as a duplicate while its sync was in flight", async () => {
+    const h = syncHarness();
+    const entered = deferred();
+    const release = deferred();
+    h.http(async (url) => {
+      if (url.pathname !== "/api/v1.0/projects/proj1") return;
+      entered.resolve();
+      await release.promise;
+      return { id: "proj1", name: "In flight" };
+    });
+    const inFlight = h.mutate("/api/v1.0/projects/proj1", {});
+    await entered.promise;
+    writeFileSync(join(h.directory, "duplicate.json"), h.original);
+    expect(h.sync.discover().has("proj1")).toBe(false);
+    release.resolve();
+    await inFlight;
+    const entry = { method: "PUT", endpoint: "/api/v1.0/tasks/task1", requestBody: {}, responseBody: {} };
+    expect(h.sync.resolveProjectId(entry)).toBeNull();
   });
 });
