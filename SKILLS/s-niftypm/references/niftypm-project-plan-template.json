@@ -38,9 +38,9 @@
   ],
 
   "milestones": [
-    { "name": "📋 M0: Project Overview",    "id": null, "due": null,        "description": "Container-level overview" },
-    { "name": "🔴 M1: Sprint 1 — Core",     "id": null, "due": "2026-02-01", "description": "First deliverable sprint" },
-    { "name": "🟡 M2: Sprint 2 — Growth",   "id": null, "due": "2026-03-01", "description": "Second sprint" }
+    { "name": "📋 M0: Project Overview",    "id": null, "start": null,         "due": null,         "description": "Container-level overview" },
+    { "name": "🔴 M1: Sprint 1 — Core",     "id": null, "start": "2026-01-05", "due": "2026-02-01", "description": "First deliverable sprint" },
+    { "name": "🟡 M2: Sprint 2 — Growth",   "id": null, "start": "2026-02-02", "due": "2026-03-01", "description": "Second sprint" }
   ],
 
   "tasks": [

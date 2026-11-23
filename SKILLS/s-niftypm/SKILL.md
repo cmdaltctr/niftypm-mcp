@@ -206,7 +206,7 @@ for each label in plan.labels:
 niftypm_list_taskgroups(project_id)  // reconcile defaults (Rule 0a)
 niftypm_list_milestones(project_id, is_list="true")
 for each list in plan.task_lists:    id = niftypm_create_taskgroup(...)  → write back
-for each ms in plan.milestones:      id = niftypm_create_milestone(...)  → write back
+for each ms in plan.milestones:      id = niftypm_create_milestone(name, project_id, start_date=ms.start, end_date=ms.due, description)  → write back
 for each task in plan.tasks:
     resolve label names → IDs, task_list name → ID, milestone name → ID
     id = niftypm_create_task(name, task_group_id, description, labels, story_points, due_date, milestone_id)

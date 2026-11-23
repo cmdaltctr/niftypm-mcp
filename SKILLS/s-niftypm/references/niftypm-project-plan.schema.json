@@ -160,10 +160,15 @@
             "type": "string",
             "description": "NiftyPM ID (populated after creation/reconciliation)"
           },
+          "start": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Start date (ISO 8601 date). Sent to NiftyPM as start_date. The Roadmap shows a milestone only when both start and due are set"
+          },
           "due": {
             "type": ["string", "null"],
             "format": "date",
-            "description": "Due date (ISO 8601 date, null for undated milestones)"
+            "description": "End date (ISO 8601 date, null for undated milestones). Sent to NiftyPM as end_date"
           },
           "description": {
             "type": "string",

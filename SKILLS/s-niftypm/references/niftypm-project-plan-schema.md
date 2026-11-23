@@ -103,14 +103,15 @@ Array of milestone objects:
 | ------------- | ------ | -------- | -------------------------- |
 | `name`            | string | yes      | Display name (include emoji prefix for Roadmap) |
 | `id`              | string | no       | NiftyPM ID (after creation)    |
-| `due`             | string | no       | Due date (ISO 8601)            |
+| `start`           | string | no       | Start date (ISO 8601). Sent as `start_date` |
+| `due`             | string | no       | End date (ISO 8601). Sent as `end_date` |
 | `description`     | string | no       | What this milestone covers     |
 
 **Guidelines**:
 - At least 2-3 milestones — never one
 - Each milestone represents a distinct workstream or timebox
 - M0: Project Overview (container, `is_list: true`)
-- M1-Mn: Real workstreams with dates
+- M1-Mn: Real workstreams with dates. Set both `start` and `due`: the Roadmap shows a milestone only when both are set
 - After project creation, ALWAYS reconcile default "Untitled List" milestone
 - Use `niftypm_list_milestones(project_id, is_list="true")` for discovery
 
@@ -159,7 +160,7 @@ Array of task objects. This is the core record:
 
 1. **Labels first**: For each label in `labels[]`, call `niftypm_create_label`. Store returned `id` in the JSON.
 2. **Task lists**: For each list in `task_lists[]`, reconcile defaults first (list existing → rename/delete), then create. Store `id`.
-3. **Milestones**: Reconcile defaults (especially "Untitled List"), create new ones, store `id`.
+3. **Milestones**: Reconcile defaults (especially "Untitled List"), create new ones with `niftypm_create_milestone(name, project_id, start_date=start, end_date=due, description)`, store `id`.
 4. **Tasks**: For each task in `tasks[]`:
    - Resolve label names → IDs from the `labels[]` section
    - Resolve task_list name → ID
