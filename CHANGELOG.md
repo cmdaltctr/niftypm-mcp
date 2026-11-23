@@ -1,3 +1,12 @@
+## [2.0.1](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.0...v2.0.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **client:** show date-valued Retry-After correctly; clarify api-auth spec and rollback ([4b6d685](https://github.com/cmdaltctr/niftypm-mcp/commit/4b6d685e37e96a54eaf9dca509831ee092bcda3a))
+* **client:** show Retry-After wait time on 429 rate-limit errors ([7fe1082](https://github.com/cmdaltctr/niftypm-mcp/commit/7fe108232951e195b7b7eba48cdfcf4606728935))
+* **deps:** bump handlebars to 4.7.10 to clear critical audit findings ([dd07e80](https://github.com/cmdaltctr/niftypm-mcp/commit/dd07e80242b398448fdb57185b552b835d2034d3))
+
 # [2.0.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v1.6.0...v2.0.0) (2026-10-08)
 
 
