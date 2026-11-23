@@ -72,4 +72,5 @@ The MCP client (`NiftyPMClient`) SHALL support requests to both API base URLs: t
 #### Scenario: Non-checklist tools continue using the existing base URL
 
 - **WHEN** any non-checklist tool (tasks, projects, milestones, etc.) makes an API call
-- **THEN** the request SHALL continue targeting `https://openapi.niftypm.com/api/v1.0/...`
+- **THEN** the request SHALL continue targeting the public host `https://openapi.niftypm.com`
+- **AND** the path is `/api/v1.0/...`, except folder tools, which use `/api/v2.0/folders`

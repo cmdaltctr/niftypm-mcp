@@ -10,7 +10,7 @@ Every NiftyPM MCP mutation (create/update/delete) hits the live API and returns 
 - **`niftypm-mcp <tool-name> [args]`** — call any registered MCP tool directly from the CLI with `--key value` args. Output is JSON to stdout (pipeable).
 - **Auto-sync on mutation** — when running as MCP server, the server auto-discovers `niftypm/*.json` files relative to `cwd`, reads `meta.niftypm_project_id` from each, and after every successful POST/PUT/DELETE refetches the affected entity type and updates the corresponding JSON section in-place. Also updates `meta.last_synced`.
 - **TypeScript reverse-sync** — port `reverse-sync.py` transform logic to TypeScript so `init`, `sync`, and auto-sync share the same code path.
-- **Mutation hook in client** — `NiftyPMClient` gains an optional `onMutation` callback fired after successful mutations. Wired in stdio mode only (not Cloudflare Workers).
+- **Mutation hook in client** — `NiftyPMClient` gains an optional `onMutation` callback fired after successful mutations. Wired in the Node.js entry points (stdio server, HTTP server and direct CLI tool calls), never in Cloudflare Workers.
 
 ## Capabilities
 
@@ -26,6 +26,6 @@ Every NiftyPM MCP mutation (create/update/delete) hits the live API and returns 
 - **New files**: `src/cli.ts`, `src/local-sync.ts`, `src/reverse-sync.ts`
 - **Modified files**: `src/index.ts` (subcommand dispatch + auto-sync wiring), `src/client.ts` (onMutation callback), `src/config.ts` (no new config — auto-discovery is cwd-relative)
 - **No new dependencies** — uses `process.argv` parsing and existing Zod schemas for CLI arg validation
-- **Cloudflare Workers** — unaffected; local sync and CLI are stdio-only features, `worker.ts` unchanged
+- **Cloudflare Workers** — unaffected; local sync and CLI are Node.js-only features, `worker.ts` unchanged
 - **Existing `reverse-sync.py`** — remains as-is; the TypeScript port is a parallel implementation sharing the same output schema
 - **s-niftypm skill** — will need a Rule 5c update documenting the auto-sync behaviour (separate follow-up)

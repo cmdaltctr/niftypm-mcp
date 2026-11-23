@@ -10,15 +10,26 @@ Defines how the running MCP server keeps local project JSON files current: disco
 The MCP server SHALL scan `process.cwd()/niftypm/*.json` at startup, read `meta.niftypm_project_id` from each file, and build an in-memory map of `project_id → filepath`. If no JSON files are found, auto-sync SHALL be silently disabled (no error, no warning).
 
 #### Scenario: Auto-discovery finds local JSON
-- **WHEN** the MCP server starts in a directory containing `niftypm/project.json` with `meta.niftypm_project_id: "abc123"`
+- **WHEN** `NIFTYPM_AUTO_SYNC=true` is set and the MCP server starts in a directory containing `niftypm/project.json` with `meta.niftypm_project_id: "abc123"`
 - **THEN** the server builds a map entry `{"abc123": "niftypm/project.json"}` and enables auto-sync for that project
+
+#### Scenario: Entity added to a mirror after startup is found
+- **WHEN** a mutation targets an entity ID that no known mirror owns, and a mirror file gained that ID after startup
+- **THEN** the server rescans `niftypm/*.json` once and syncs the owning project
+- **AND** if the rescan finds no owner and the request carries no valid project evidence, the mutation is skipped without changing any mirror
+- **AND** if the request carries a valid `project_id` for a registered mirror, that project is synced
 
 #### Scenario: Auto-discovery with no local JSON disables sync
 - **WHEN** the MCP server starts in a directory with no `niftypm/` directory or no `*.json` files inside it
 - **THEN** auto-sync is disabled and no sync operations are attempted on mutations
 
 ### Requirement: Mutation interception
-The `NiftyPMClient` SHALL support an optional `onMutation` callback that is invoked after every successful POST, PUT, or DELETE request. The callback SHALL receive the HTTP method, endpoint URL, request body, and response body. GET requests SHALL NOT trigger the callback. The callback SHALL be invoked asynchronously and SHALL NOT block the tool response or throw errors into the calling context.
+The `NiftyPMClient` SHALL support an optional `onMutation` callback that is invoked after every successful POST, PUT, or DELETE request. The callback SHALL receive the HTTP method, endpoint URL, request body, and response body. GET requests SHALL NOT trigger the callback. The client SHALL NOT await the callback's promise, block the tool response, or throw callback errors into the calling context.
+
+#### Scenario: Callback timing
+- **WHEN** a mutation succeeds
+- **THEN** the client calls `onMutation` before `request()` returns
+- **AND** the callback returns quickly and does slow work in a returned promise that the client does not await
 
 #### Scenario: Mutation triggers callback
 - **WHEN** a `PUT /api/v1.0/tasks/abc123` request succeeds

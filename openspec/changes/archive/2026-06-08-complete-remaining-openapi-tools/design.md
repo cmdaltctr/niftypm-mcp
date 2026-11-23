@@ -24,7 +24,7 @@ The NiftyPM MCP server currently implements 104 tools covering 20 domains. The u
 
 ### 1. Add `formUpload` to `NiftyPMClient`
 
-**Decision:** Add a new `formUpload(endpoint, formData, query)` method to `NiftyPMClient` that sends `multipart/form-data` with the standard `Authorization` and `Content-Type` headers omitted (the runtime `fetch` sets the multipart boundary).
+**Decision:** Add a new `formUpload(endpoint, formData, query)` method to `NiftyPMClient` that sends `multipart/form-data` with the `Authorization` header kept and only `Content-Type` omitted (the runtime `fetch` sets the multipart boundary).
 
 **Alternatives considered:**
 - *Bake multipart into existing `post()`*: Rejected — `post()` serialises `body` as `JSON.stringify()`, so adding multipart as an overloaded branch would break the existing contract.

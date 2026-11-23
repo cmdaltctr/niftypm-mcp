@@ -31,7 +31,7 @@ The existing `niftypm-mcp-remaining-tools` spec already requires "Complete OpenA
 
 ### D1 — Add all 15 missing `list_tasks` params in one schema change
 **Choice**: expand `ListTasksSchema` in `src/tools/tasks.ts` to include every spec-defined query parameter as an optional field.
-**Rationale**: all 15 params are spec-defined, optional, and string-typed (two are arrays: `project_ids`, `assignee_ids`). A single additive change is cheaper than three incremental rounds and matches the upstream contract exactly.
+**Rationale**: all 15 params are spec-defined, optional, and string-typed (one is an array: `assignee_ids`; `project_ids` is a comma-separated string). A single additive change is cheaper than three incremental rounds and matches the upstream contract exactly.
 **Alternatives considered**:
 - *Add only `include_subtasks`*: rejected — closes the immediate user pain but leaves 14 known gaps that will surface as follow-up bugs. The audit already did the discovery work; ship it once.
 - *Generate the schema from the OpenAPI spec at build time*: tempting long-term, but out of scope for this change and would require a new code-generation pipeline.

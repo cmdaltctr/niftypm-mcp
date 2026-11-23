@@ -153,4 +153,14 @@ describe("LocalSync consent and ownership through real HTTP hooks", () => {
     expect(h.getCalls()).toHaveLength(0);
     expect(h.bytes() === h.original).toBe(true);
   });
+
+  it("finds the owner of a task added to the mirror after startup", async () => {
+    const h = syncHarness();
+    const added = h.read();
+    added.tasks.push({ ...added.tasks[0], id: "taskAdded", nice_id: "SYN-99", name: "Added after startup" });
+    writeFileSync(h.filepath, JSON.stringify(added));
+    h.response({ id: "taskAdded" });
+    await h.mutate("/api/v1.0/tasks/taskAdded", {});
+    expect(h.getCalls().length).toBeGreaterThan(0);
+  });
 });

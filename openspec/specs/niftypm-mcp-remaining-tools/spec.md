@@ -95,20 +95,20 @@ milestone to another project via
 The MCP server SHALL provide `niftypm_tie_milestone_tasks` and
 `niftypm_untie_milestone_tasks` tools that associate or dissociate a list of
 tasks with a milestone via `PUT` and
-`DELETE /api/v1.0/milestones/{milestone_id}/tasks` respectively, sending a
-`tasks` array of task IDs in the request body.
+`DELETE /api/v1.0/milestones/{milestone_id}/tasks` respectively. Each tool takes
+a `task_ids` array and sends it as the `tasks` array in the request body.
 
 #### Scenario: Tie tasks to a milestone
 
 - **WHEN** the user calls `niftypm_tie_milestone_tasks` with a valid
-  `milestone_id` and a non-empty `tasks` array
+  `milestone_id` and a non-empty `task_ids` array
 - **THEN** the MCP server SHALL associate those tasks with the milestone
 - **AND** the response SHALL include the associated task list
 
 #### Scenario: Untie tasks from a milestone
 
 - **WHEN** the user calls `niftypm_untie_milestone_tasks` with a valid
-  `milestone_id` and a `tasks` array
+  `milestone_id` and a `task_ids` array
 - **THEN** the MCP server SHALL remove those tasks from the milestone
 - **AND** the response SHALL include the remaining associated task list
 

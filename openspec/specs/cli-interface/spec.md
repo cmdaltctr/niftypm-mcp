@@ -15,7 +15,13 @@ The `niftypm-mcp` binary SHALL support subcommand dispatch via `process.argv`. W
 
 #### Scenario: Unknown subcommand exits with error
 - **WHEN** `niftypm-mcp` is invoked with an argument that is neither `init`, `sync`, nor a registered tool name
-- **THEN** the system prints an error message listing available subcommands and exits with code 1
+- **AND** credential validation succeeds
+- **THEN** the system prints `Unknown command or tool: "<name>"` and a hint to run `niftypm-mcp help`, and exits with code 1
+
+#### Scenario: Missing credentials fail before the command check
+- **WHEN** `niftypm-mcp` is invoked with an unknown argument and credentials are missing
+- **THEN** the system exits with code 1 on the credential validation error
+- **AND** does not reach the unknown-command check
 
 #### Scenario: Tool name as subcommand executes tool
 - **WHEN** `niftypm-mcp niftypm_list_projects` is invoked

@@ -30,6 +30,14 @@ The page SHALL provide input fields for all four OAuth credentials:
 `NIFTYPM_CLIENT_ID`, `NIFTYPM_CLIENT_SECRET`, `NIFTYPM_ACCESS_TOKEN`, and
 `NIFTYPM_REFRESH_TOKEN`.
 
+The page does not capture `NIFTYPM_API_TOKEN` or `NIFTYPM_TEAM_TOKEN`. `loadConfig()` reads both. A user who authenticates with a token SHALL add the token line to the generated `.env` by hand.
+
+#### Scenario: Token credentials are not generated
+
+- **GIVEN** the user has filled all four OAuth fields
+- **WHEN** they download the `.env`
+- **THEN** the file contains no `NIFTYPM_API_TOKEN` or `NIFTYPM_TEAM_TOKEN` line
+
 #### Scenario: Secret fields are masked
 
 - **GIVEN** the configurator is open
@@ -47,15 +55,27 @@ The page SHALL provide input fields for all four OAuth credentials:
 
 ### Requirement: Tool-domain toggles
 
-The page SHALL present one labelled on/off toggle for each of the 20 tool
-domains defined in `src/config.ts` `enabledTools`, each defaulting to ON.
+The page SHALL present one labelled on/off toggle for each of 20 tool
+domains, each defaulting to ON. `loadConfig()` in `src/config.ts` defines 21
+domains. The page has no toggle for `checklists`; `ENABLE_CHECKLISTS` stays
+ON unless the user adds `ENABLE_CHECKLISTS=false` by hand.
+
+The page SHALL offer two tabs. The Simple tab shows the domain toggles. The
+Advanced tab lets the user turn off single tools inside an enabled domain.
 
 #### Scenario: All 20 domains present and default on
 
 - **GIVEN** the configurator is open
 - **WHEN** the user views the toggles
-- **THEN** exactly 20 toggles are shown, one per tool domain
+- **THEN** exactly 20 toggles are shown, one per tool domain except `checklists`
 - **AND** every toggle defaults to the ON (enabled) state
+
+#### Scenario: Single tools disabled in the Advanced tab
+
+- **GIVEN** the user turns off one tool in the Advanced tab
+- **WHEN** the `.env` is generated
+- **THEN** the file contains a `DISABLED_TOOLS` line with the tool name
+- **AND** the file contains no `DISABLED_TOOLS` line when no single tool is off
 
 #### Scenario: Correct env-var mapping for irregular names
 
@@ -89,13 +109,16 @@ consumed by `loadConfig()` and trigger a browser download named `.env`.
 - **GIVEN** the generated `.env` is placed in the project root
 - **WHEN** the MCP server is restarted
 - **THEN** `loadConfig()` reads the values from `process.env` (via `.env`)
+- **AND** a variable already set in `process.env` (for example `ENABLE_TASKS` in the MCP client config) wins over the same variable in `.env`
 - **AND** no change to `src/config.ts` is required for this to work
 
 ### Requirement: Placement and restart guidance
 
 The page SHALL display clear instructions telling the user to save the file
 as `.env` in the project root, back up any existing `.env`, and restart the
-MCP server for changes to take effect.
+MCP server for changes to take effect. The instructions SHOULD also tell the
+user that a variable already set in the environment (for example in the MCP
+client config) overrides the generated `.env`.
 
 #### Scenario: Guidance is visible near the action
 
