@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.1...v2.0.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **local-sync:** rescan mirrors when a mutation targets an unknown entity id ([25b2618](https://github.com/cmdaltctr/niftypm-mcp/commit/25b2618fc167d2a2469880ffa9b1d03be9b6dfa0))
+
 ## [2.0.1](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.0...v2.0.1) (2026-11-23)
 
 
