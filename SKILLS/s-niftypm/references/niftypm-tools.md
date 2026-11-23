@@ -101,9 +101,9 @@ Uses NiftyPM's internal API (`api.niftypm.com`). **Write operations require a te
 
 | Tool | Purpose | Key Parameters |
 |------|---------|---------------|
-| `niftypm_create_milestone` | Create a milestone | `name` (required), `project_id` (required), `due_date`, `description` |
+| `niftypm_create_milestone` | Create a milestone | `name` (required), `project_id` (required), `start_date`, `end_date`, `description`. `due_date` is a deprecated alias for `end_date`. The roadmap shows a milestone only when both dates are set |
 | `niftypm_get_milestone` | Get milestone details | `milestone_id` (required) |
-| `niftypm_update_milestone` | Update milestone | `milestone_id` (required), `name`, `due_date`, `description` |
+| `niftypm_update_milestone` | Update milestone | `milestone_id` (required), `name`, `start_date`, `end_date`, `description`. `due_date` is a deprecated alias for `end_date` |
 | `niftypm_delete_milestone` | Delete milestone | `milestone_id` (required) |
 | `niftypm_archive_milestone` | Archive milestone | `milestone_id` (required) |
 | `niftypm_list_milestones` | List milestones in project | `project_id`, `limit`, `offset` |

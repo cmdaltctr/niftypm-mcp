@@ -53,9 +53,9 @@ Portfolio: "Research"
 
 4. **Create milestones (key deadlines):**
    ```
-   niftypm_create_milestone(name="Literature Review Complete", project_id="...", due_date="2026-07-15")
-   niftypm_create_milestone(name="First Draft Complete", project_id="...", due_date="2026-08-30")
-   niftypm_create_milestone(name="Submit to Journal", project_id="...", due_date="2026-10-01")
+   niftypm_create_milestone(name="Literature Review Complete", project_id="...", start_date="2026-06-01", end_date="2026-07-15")
+   niftypm_create_milestone(name="First Draft Complete", project_id="...", start_date="2026-07-16", end_date="2026-08-30")
+   niftypm_create_milestone(name="Submit to Journal", project_id="...", start_date="2026-09-01", end_date="2026-10-01")
    ```
 
 5. **Create tasks with dependencies:**
@@ -139,7 +139,7 @@ Portfolio: "Software Development"
 
 2. **Create sprint milestone:**
    ```
-   niftypm_create_milestone(name="Sprint 1 — Core Features", project_id="...", due_date="2026-06-23")
+   niftypm_create_milestone(name="Sprint 1 — Core Features", project_id="...", start_date="2026-06-09", end_date="2026-06-23")
    ```
 
 3. **Create tasks with story points:**
@@ -254,7 +254,7 @@ Portfolio: "Business" or "[Company Name]"
 
 4. **Create milestone for release:**
    ```
-   niftypm_create_milestone(name="v2.0 Release", project_id="...", due_date="2026-09-15")
+   niftypm_create_milestone(name="v2.0 Release", project_id="...", start_date="2026-08-15", end_date="2026-09-15")
    niftypm_tie_milestone_tasks(milestone_id="...", task_ids=[...])
    ```
 

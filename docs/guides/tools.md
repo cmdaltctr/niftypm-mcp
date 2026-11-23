@@ -265,8 +265,8 @@ For legacy `403` responses, follow [TDR-001](../tdr/001-legacy-document-read-403
 | --- | --- |
 | `niftypm_list_milestones` | List milestones in a project. |
 | `niftypm_get_milestone` | Get a milestone by ID. |
-| `niftypm_create_milestone` | Create a milestone. |
-| `niftypm_update_milestone` | Update a milestone. |
+| `niftypm_create_milestone` | Create a milestone. Set `start_date` and `end_date`; the roadmap shows a milestone only when both are set. `due_date` is a deprecated alias for `end_date`. |
+| `niftypm_update_milestone` | Update a milestone. Accepts `start_date`, `end_date` and the deprecated `due_date` alias. |
 | `niftypm_delete_milestone` | Delete a milestone. |
 | `niftypm_archive_milestone` | Archive a milestone. |
 | `niftypm_move_milestone` | Move a milestone to another project. |
