@@ -16,7 +16,8 @@ The MCP server SHALL scan `process.cwd()/niftypm/*.json` at startup, read `meta.
 #### Scenario: Entity added to a mirror after startup is found
 - **WHEN** a mutation targets an entity ID that no known mirror owns, and a mirror file gained that ID after startup
 - **THEN** the server rescans `niftypm/*.json` once and syncs the owning project
-- **AND** if the rescan finds no owner, the mutation is skipped without changing any mirror
+- **AND** if the rescan finds no owner and the request carries no valid project evidence, the mutation is skipped without changing any mirror
+- **AND** if the request carries a valid `project_id` for a registered mirror, that project is synced
 
 #### Scenario: Auto-discovery with no local JSON disables sync
 - **WHEN** the MCP server starts in a directory with no `niftypm/` directory or no `*.json` files inside it
