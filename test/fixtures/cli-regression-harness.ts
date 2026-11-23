@@ -30,6 +30,12 @@ vi.mock("node:fs", async (importOriginal) => {
   const fs = await importOriginal<typeof import("node:fs")>();
   return {
     ...fs,
+    // Credentials fall back to the project's real .secrets/ files when an env var is empty.
+    // Hide them so a developer's local credentials never leak into a test.
+    readFileSync: (...args: any[]) => {
+      if (String(args[0]).includes("/.secrets/")) throw new Error("ENOENT: .secrets is hidden in tests");
+      return (fs.readFileSync as any)(...args);
+    },
     writeFileSync: (...args: any[]) => {
       const path = String(args[0]);
       controls.writes.push(path);
