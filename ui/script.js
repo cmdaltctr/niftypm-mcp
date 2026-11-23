@@ -220,6 +220,19 @@ const TOOL_DOMAINS = [
       { name: "niftypm_refresh_token", desc: "Refresh the authentication token" },
     ]
   },
+  {
+    id: "checklists", label: "Checklists", envKey: "ENABLE_CHECKLISTS", group: "extended",
+    tools: [
+      { name: "niftypm_create_checklist", desc: "Create a new checklist on a task" },
+      { name: "niftypm_get_checklist", desc: "Get a checklist by ID, including its items" },
+      { name: "niftypm_update_checklist", desc: "Rename a checklist" },
+      { name: "niftypm_delete_checklist", desc: "Delete a checklist and all its items" },
+      { name: "niftypm_create_checklist_items", desc: "Add one or more items to a checklist" },
+      { name: "niftypm_update_checklist_item", desc: "Rename a checklist item" },
+      { name: "niftypm_toggle_checklist_item", desc: "Toggle the completion status of a checklist item" },
+      { name: "niftypm_delete_checklist_item", desc: "Delete a single checklist item" },
+    ]
+  },
 ];
 
 // ─── Shared State ──────────────────────────────────────────────────
@@ -332,6 +345,10 @@ function getVal(id) { return document.getElementById(id).value.trim(); }
 
 function generateEnvFile() {
   const lines = [];
+  lines.push("# NiftyPM token credentials (the API token wins over OAuth when set)");
+  lines.push(`NIFTYPM_API_TOKEN=${getVal("api-token")}`);
+  lines.push(`NIFTYPM_TEAM_TOKEN=${getVal("team-token")}`);
+  lines.push("");
   lines.push("# NiftyPM OAuth Credentials");
   lines.push(`NIFTYPM_CLIENT_ID=${getVal("client-id")}`);
   lines.push(`NIFTYPM_CLIENT_SECRET=${getVal("client-secret")}`);
@@ -362,10 +379,12 @@ function generateEnvFile() {
 
 function downloadEnv() {
   const empty = [];
-  if (!getVal("client-id")) empty.push("Client ID");
-  if (!getVal("client-secret")) empty.push("Client Secret");
-  if (!getVal("access-token")) empty.push("Access Token");
-  if (!getVal("refresh-token")) empty.push("Refresh Token");
+  if (!getVal("api-token")) {
+    if (!getVal("client-id")) empty.push("Client ID");
+    if (!getVal("client-secret")) empty.push("Client Secret");
+    if (!getVal("access-token")) empty.push("Access Token");
+    if (!getVal("refresh-token")) empty.push("Refresh Token");
+  }
   const w = document.getElementById("warning");
   w.textContent = empty.length > 0 ? `\u26a0 Missing: ${empty.join(", ")}. Your .env may not work. You can still download.` : "";
   const blob = new Blob([generateEnvFile()], { type: "text/plain" });

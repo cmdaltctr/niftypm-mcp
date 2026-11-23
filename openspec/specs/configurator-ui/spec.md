@@ -30,13 +30,19 @@ The page SHALL provide input fields for all four OAuth credentials:
 `NIFTYPM_CLIENT_ID`, `NIFTYPM_CLIENT_SECRET`, `NIFTYPM_ACCESS_TOKEN`, and
 `NIFTYPM_REFRESH_TOKEN`.
 
-The page does not capture `NIFTYPM_API_TOKEN` or `NIFTYPM_TEAM_TOKEN`. `loadConfig()` reads both. A user who authenticates with a token SHALL add the token line to the generated `.env` by hand.
+The page SHALL also provide masked inputs for `NIFTYPM_API_TOKEN` and `NIFTYPM_TEAM_TOKEN`. `loadConfig()` reads both. The API token takes priority over the OAuth fields. The team token is only needed for checklist write tools.
 
-#### Scenario: Token credentials are not generated
+#### Scenario: Token credentials are generated
 
-- **GIVEN** the user has filled all four OAuth fields
+- **GIVEN** the user has entered an API token and a team token
 - **WHEN** they download the `.env`
-- **THEN** the file contains no `NIFTYPM_API_TOKEN` or `NIFTYPM_TEAM_TOKEN` line
+- **THEN** the file contains `NIFTYPM_API_TOKEN=<value>` and `NIFTYPM_TEAM_TOKEN=<value>` lines
+
+#### Scenario: API token replaces the OAuth missing-field warning
+
+- **GIVEN** the user has entered an API token and left the OAuth fields empty
+- **WHEN** they download the `.env`
+- **THEN** the page shows no missing-credential warning
 
 #### Scenario: Secret fields are masked
 
@@ -55,19 +61,17 @@ The page does not capture `NIFTYPM_API_TOKEN` or `NIFTYPM_TEAM_TOKEN`. `loadConf
 
 ### Requirement: Tool-domain toggles
 
-The page SHALL present one labelled on/off toggle for each of 20 tool
-domains, each defaulting to ON. `loadConfig()` in `src/config.ts` defines 21
-domains. The page has no toggle for `checklists`; `ENABLE_CHECKLISTS` stays
-ON unless the user adds `ENABLE_CHECKLISTS=false` by hand.
+The page SHALL present one labelled on/off toggle for each of the 21 tool
+domains defined in `loadConfig()` in `src/config.ts`, each defaulting to ON.
 
 The page SHALL offer two tabs. The Simple tab shows the domain toggles. The
 Advanced tab lets the user turn off single tools inside an enabled domain.
 
-#### Scenario: All 20 domains present and default on
+#### Scenario: All 21 domains present and default on
 
 - **GIVEN** the configurator is open
 - **WHEN** the user views the toggles
-- **THEN** exactly 20 toggles are shown, one per tool domain except `checklists`
+- **THEN** exactly 21 toggles are shown, one per tool domain, including `checklists`
 - **AND** every toggle defaults to the ON (enabled) state
 
 #### Scenario: Single tools disabled in the Advanced tab
@@ -94,7 +98,7 @@ consumed by `loadConfig()` and trigger a browser download named `.env`.
 - **GIVEN** the user has filled credentials and set toggles
 - **WHEN** they download the `.env`
 - **THEN** the file contains the four `NIFTYPM_*` credential lines
-- **AND** contains all 20 `ENABLE_*` lines with `true` or `false` values
+- **AND** contains all 21 `ENABLE_*` lines with `true` or `false` values
 - **AND** the variable names exactly match those read in `src/config.ts`
 
 #### Scenario: Toggle state maps to env value

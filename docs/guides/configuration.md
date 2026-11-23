@@ -113,14 +113,14 @@ easiest way to generate a `.env` file without editing anything by hand.
 **How to use:**
 
 1. Open `ui/index.html` in a browser (works via `file://` — no server needed).
-2. Paste your OAuth credentials in the form.
+2. Paste your API token (recommended) in the form. Add the team token if you use checklist write tools. The OAuth fields are only needed when you have no API token.
 3. Switch between the **Simple** and **Advanced** tabs to configure tools.
 
-**Simple tab** — 20 domain-level ON/OFF switches, grouped into Core
+**Simple tab** — 21 domain-level ON/OFF switches, grouped into Core
 (projects, tasks, docs) and Extended (workspace and integration). Turning a
 domain OFF disables every tool in that domain.
 
-**Advanced tab** — a full per-tool toggle table with ~116 tools across all 20
+**Advanced tab** — a full per-tool toggle table with 124 tools across all 21
 domains, each with a name, human-readable description, and individual toggle.
 When a domain is OFF in Simple, the Advanced tab dims that domain's section.
 Per-tool overrides you set in Advanced are preserved even when you briefly

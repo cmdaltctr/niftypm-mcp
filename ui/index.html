@@ -13,6 +13,25 @@
       <p class="notice">This page runs entirely in your browser. No data is sent anywhere.</p>
     </header>
 
+    <section id="token-credentials">
+      <h2>API Token (recommended)</h2>
+      <p class="guidance">When an API token is set, the OAuth fields below are ignored. The team token is only needed for checklist write tools.</p>
+      <div class="field">
+        <label for="api-token">API Token</label>
+        <div class="password-wrapper">
+          <input type="password" id="api-token" placeholder="your_api_token_here">
+          <button type="button" class="toggle-pw" data-target="api-token">Show</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="team-token">Team Token (optional, for checklists)</label>
+        <div class="password-wrapper">
+          <input type="password" id="team-token" placeholder="your_team_token_here">
+          <button type="button" class="toggle-pw" data-target="team-token">Show</button>
+        </div>
+      </div>
+    </section>
+
     <section id="credentials">
       <h2>OAuth Credentials</h2>
       <div class="field">

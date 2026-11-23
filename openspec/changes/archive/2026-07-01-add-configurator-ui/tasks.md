@@ -20,7 +20,7 @@
 
 ## 4. Simple tab rendering
 
-- [x] 4.1 Implement `renderSimpleTab()` that populates `#simple-tab-content` with 20 domain toggle rows, grouped under Core and Extended labels. `loadConfig()` defines 21 domains. The page has no `checklists` toggle; checklists stay ON unless `ENABLE_CHECKLISTS=false` is added by hand.
+- [x] 4.1 Implement `renderSimpleTab()` that populates `#simple-tab-content` with 20 domain toggle rows, grouped under Core and Extended labels. The Checklists toggle (21st domain) was added later, after `loadConfig()` gained the `checklists` domain.
 - [x] 4.2 Each row shows the domain label, a toggle switch reflecting `state.domains[id].enabled`, and (optionally) a tool count like "(13 tools)".
 - [x] 4.3 Toggle click calls `updateDomain()`.
 
