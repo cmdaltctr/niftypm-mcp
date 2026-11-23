@@ -1,3 +1,15 @@
+# [2.1.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.2...v2.1.0) (2026-11-23)
+
+
+### Bug Fixes
+
+* **local-sync:** keep a project disabled by a rescan from regaining ownership ([fd116e8](https://github.com/cmdaltctr/niftypm-mcp/commit/fd116e828c20fa073ad457bc51a5ffdf5a5dd7d0))
+
+
+### Features
+
+* **ui:** add API token, team token and checklists toggle to the configurator ([8f223ee](https://github.com/cmdaltctr/niftypm-mcp/commit/8f223ee763d7c2255bf1bdc3e74521f1e1dc3cd5))
+
 ## [2.0.2](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.1...v2.0.2) (2026-11-23)
 
 
