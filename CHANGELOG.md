@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.1.0...v2.1.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **milestones:** send start and end dates so milestones show on the roadmap ([3da7c5d](https://github.com/cmdaltctr/niftypm-mcp/commit/3da7c5da8ebf7aecb9ffa683fdd5aab2481e434e))
+
 # [2.1.0](https://github.com/cmdaltctr/niftypm-mcp/compare/v2.0.2...v2.1.0) (2026-11-23)
 
 
