@@ -84,7 +84,9 @@ export class LocalSync {
     if (info?.type === "project" && info.id) candidates.add(info.id);
     if (candidates.size > 1) return null;
     const explicit = [...candidates][0];
-    const owners = info?.id ? this.entityIdMap.get(info.id) : undefined;
+    let owners = info?.id ? this.entityIdMap.get(info.id) : undefined;
+    // Mirrors can change after startup; rescan once before treating an unknown id as unowned.
+    if (info?.id && !owners) { this.discover(); owners = this.entityIdMap.get(info.id); }
     if (explicit) return owners && !owners.has(explicit) ? null : explicit;
     return owners?.size === 1 ? [...owners][0] : null;
   }
