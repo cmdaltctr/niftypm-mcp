@@ -1,7 +1,7 @@
 ## 1. F-1 — Expand `niftypm_list_tasks` parameters (closes Issue 1)
 
 - [x] 1.1 Audit `test/tools/tasks.test.ts` and `test/regression-api-contract.test.ts` for any hardcoded parameter-list assertions that would break when the schema grows
-- [x] 1.2 Add the 15 missing spec-defined query parameters to `ListTasksSchema` in `src/tools/tasks.ts`: `include_subtasks`, `task_id`, `meeting_id`, `completed_by`, `include_archived`, `order`, `sort`, `from`, `to`, `archived_from`, `archived_to`, `completed_from`, `completed_to`, `project_ids` (array), `assignee_ids` (array)
+- [x] 1.2 Add the 15 missing spec-defined query parameters to `ListTasksSchema` in `src/tools/tasks.ts`: `include_subtasks`, `task_id`, `meeting_id`, `completed_by`, `include_archived`, `order`, `sort`, `from`, `to`, `archived_from`, `archived_to`, `completed_from`, `completed_to`, `project_ids` (comma-separated string), `assignee_ids` (array)
 - [x] 1.3 Verify the existing `execute` body already forwards `params` wholesale to `client.get("/api/v1.0/tasks", params)`; if not, adjust to pass the new fields through
 - [x] 1.4 Create `test/tools/list-tasks-params.test.ts` asserting that each of the 15 new params is forwarded to the client as a query parameter (implements spec scenario *"Tool exposes all spec-defined query parameters"* and *"List tasks supports subtask inclusion"*)
 - [x] 1.5 Run `bun run test` and confirm the tasks suite is green

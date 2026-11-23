@@ -95,5 +95,5 @@ There is no CLI framework — the binary just starts the server. No subcommand p
 - ** [Race conditions on JSON file]** → Mitigated: use synchronous file writes (`writeFileSync`) for the JSON update to avoid interleaved writes. The MCP server is single-threaded (stdio), so concurrent mutations are serialised.
 - **[Project ID resolution failure]** → Mitigated: skip silently with stderr log. The mutation still succeeds on the API; only the local sync is skipped. User can run `niftypm-mcp sync` manually to catch up.
 - **[CLI arg parsing edge cases]** → Mitigated: Zod validation catches type errors. Unknown args are ignored. If validation fails, print the Zod error and exit(1).
-- **[Local JSON drift if sync fails repeatedly]** → Mitigated: `meta.last_synced` timestamp lets agents detect staleness. `niftypm-mcp sync` does a full re-sync as a recovery path.
+- **[Local JSON drift if sync fails repeatedly]** → Mitigated: `meta.last_synced` timestamp shows when a sync last ran. It does not prove that every section is fresh, because one sync refreshes only one section. `niftypm-mcp sync` does a full re-sync as a recovery path.
 - **[Workers incompatibility]** → Mitigated: local sync code is only imported in `index.ts`, never in `worker.ts`. The `onMutation` callback is optional — `undefined` in Workers mode.
